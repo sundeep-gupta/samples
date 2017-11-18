@@ -1,0 +1,6 @@
+task abc << {
+    print "hello abc 1"
+}
+task abc << {
+    print "hello abc 2"
+}

@@ -1,0 +1,7 @@
+def list = [1, 2,4,5]
+list.each {
+    println it
+    if (it == 4) {
+        return
+    }
+}

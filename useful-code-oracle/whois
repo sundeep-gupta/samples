@@ -1,0 +1,931 @@
+#!/usr/local/bin/perl5.8
+# ==============================================================================
+# $Header: whois /main/1 2014/05/12 09:20:40 mgoodric Exp $
+#
+# Copyright (c) 2013, 2014, Oracle and/or its affiliates. All rights reserved.
+#
+#  NAME
+#   whois - display ldapsearch data for user
+#
+#  AUTHOR
+#   mark.goodrich@oracle.com
+#
+#  DESCRIPTION
+#   Display ldapsearch data for user.
+#
+#  NOTES
+#   <other useful comments, qualifications, etc.>
+#
+#  MODIFIED    (MM/DD/YY)
+#   mgoodric    05/12/14 - elimiminate duplicates
+#   mgoodric    05/01/14 - add -reports
+#   mgoodric    04/30/14 - allow csv name input
+#   mgoodric    09/19/13 - fix for rdabbott
+#   mgoodric    08/06/13 - update %area_codes
+#   mgoodric    08/06/13 - add getAreaCode
+#   mgoodric    08/04/13 - add -names
+#   mgoodric    08/02/13 - add -org, -title, -mail, -telephone
+#   mgoodric    08/01/13 - Creation
+# ==============================================================================
+
+use Cwd;
+use File::Basename;
+use File::Spec();
+use Getopt::Long;
+use FindBin qw( $Bin );
+
+use English '-no_match_vars';
+use strict;
+use warnings;
+
+use constant BAR           => '|';
+use constant CSV           => ',';
+use constant FILESEP       => '/';
+use constant LBLSEP        => '_';
+use constant NA            => 'n/a';
+use constant NEWLINE       => "\n";
+use constant NIL           => '';
+use constant NONE          => 'NONE';
+use constant PGBREAK       => '-' x 80 . NEWLINE;
+use constant SEP           => ':';
+use constant VALSEP        => '=';
+use constant WS            => ' ';
+use constant FORMAT_1      => " %-10s: %s" . NEWLINE;
+
+# ------------------------------------------------------------------------------
+#                       I N I T I A L I Z A T I O N
+# ------------------------------------------------------------------------------
+
+BEGIN {
+    use vars qw( $MYNAME $MYVERSION $MYCOPYRIGHT );
+    ($MYNAME, $MYVERSION, $MYCOPYRIGHT) =
+        (File::Basename::basename($0, '.pl'), '12.0-10', 2013);
+
+    use vars qw(
+        $_BIN $_USR $_USR_BIN $_USR_LOCAL $_USR_LOCAL_BIN $_PACKAGES $_HOME
+        $_NET $_SCRATCH $_TMP
+    );
+    $_BIN           = File::Spec->join(NIL,         'bin');
+    $_USR           = File::Spec->join(NIL,         'usr');
+    $_USR_BIN       = File::Spec->join($_USR,       'bin');
+    $_USR_LOCAL     = File::Spec->join($_USR,       'local');
+    $_USR_LOCAL_BIN = File::Spec->join($_USR_LOCAL, 'bin');
+    $_PACKAGES      = File::Spec->join($_USR_LOCAL, 'packages');
+    $_HOME          = File::Spec->join(NIL,         'home');
+    $_NET           = File::Spec->join(NIL,         'net');
+    $_SCRATCH       = File::Spec->join(NIL,         'scratch');
+    $_TMP           = File::Spec->join(NIL,         'tmp');
+
+    use vars qw(
+        $ADE_VIEW_ROOT $ADE_NT_ROOT $MKSROOT $NDE_PRODUCT_ROOT $NDE_PRODUCT
+        $ADE_SITE $ORACLE_HOME $SRCHOME $PATH $PERL5LIB $T_WORK
+    );
+    $ADE_VIEW_ROOT = $ENV{'ADE_VIEW_ROOT'} || NIL;
+    ($ADE_NT_ROOT = $ENV{'ADE_NT_ROOT'} || 'C:/ADE')   =~ s#[\\]#/#g;
+    ($MKSROOT     = $ENV{'MKSROOT'}     || 'C:/mksnt') =~ s#[\\]#/#g;
+    $NDE_PRODUCT_ROOT = $ENV{'NDE_PRODUCT_ROOT'} || NIL;
+    $NDE_PRODUCT      = $ENV{'NDE_PRODUCT'}      || NIL;
+    $ADE_SITE         = $ENV{'ADE_SITE'}
+        || ($^O =~ m/^(Windows|MSWin)/i ? 'ade_nedc' : 'ade_slc');
+    $ORACLE_HOME = $ENV{'ORACLE_HOME'} || NIL;
+    $SRCHOME     = $ENV{'SRCHOME'}     || NIL;
+    $PATH        = $ENV{'PATH'}        || NIL;
+    $PERL5LIB    = $ENV{'PERL5LIB'}    || NIL;
+    $T_WORK      = $ENV{'T_WORK'}      || NIL;
+
+    use vars qw( $OS_PLATFORM $OS_MACH $TERM );
+    $OS_PLATFORM = uc($^O);
+    chomp($OS_MACH = `uname -m`);
+    $TERM = $ENV{'TERM'} || NIL;
+
+    use vars qw(
+        $IS_WINDOWS $IS_LINUX $IS_SOLARIS $IS_HPUX $IS_AIX
+        $IS_MACOS $IS_TRU64 $IS_TERMINAL $IS_X64
+    );
+    $IS_WINDOWS  = ($^O   =~ m/^(Windows|MSWin)/i     ? 1 : 0);
+    $IS_LINUX    = ($^O   =~ m/^linux/i               ? 1 : 0);
+    $IS_SOLARIS  = ($^O   =~ m/^(solaris|sunos)/i     ? 1 : 0);
+    $IS_HPUX     = ($^O   =~ m/^hpux/i                ? 1 : 0);
+    $IS_AIX      = ($^O   =~ m/^aix/i                 ? 1 : 0);
+    $IS_MACOS    = ($^O   =~ m/^darwin/i              ? 1 : 0);
+    $IS_TRU64    = ($^O   =~ m/^osf1/i                ? 1 : 0);
+    $IS_TERMINAL = ($TERM =~ m/dtterm|xterm|vt[0-9]/i ? 1 : 0);
+    $IS_X64 = ($IS_LINUX & ($OS_MACH eq 'x86_64') ? 1 : 0);
+
+    # mergereq Package directory
+    use vars qw(
+        $ADE_HOME $FARMLIB $MRGREQ_ULPM $MRGREQ_TMP $NDE_HOME $TEMPFILE
+    );
+    $ADE_HOME =
+        ($^O =~ m/^(Windows|MSWin)/i ? "$ADE_NT_ROOT/ade" : "$_USR_LOCAL/nde/ade");
+    $FARMLIB = (
+        $^O =~ m/^(Windows|MSWin)/i
+        ? "$ADE_NT_ROOT/packages/farm/farm"
+        : "$_PACKAGES/aime/farm"
+    );
+    ($MRGREQ_ULPM, $MRGREQ_TMP) = ($ENV{'MRGREQ_ULPM'}, $ENV{'MRGREQ_TMP'});
+    $MRGREQ_ULPM = (
+        $^O =~ m/^(Windows|MSWin)/i
+        ? "$ADE_NT_ROOT/packages/mergereq40"
+        : "$_PACKAGES/mergereq40"
+    ) unless ($MRGREQ_ULPM);
+    $MRGREQ_TMP = ($^O =~ m/^(Windows|MSWin)/i ? 'C:/temp' : $_TMP)
+        unless ($MRGREQ_TMP);
+    $NDE_HOME = $ENV{'NDE_HOME'}
+        || ($^O =~ m/^(Windows|MSWin)/i ? "$ADE_NT_ROOT/nde" : "$_USR_LOCAL/nde");
+    $TEMPFILE = File::Spec->join($T_WORK, "logfile_$$.tmp");
+
+    use vars qw( $ADE $AIMEUSER $EXPECT $LDAPSEARCH $LS $PERL );
+    $ADE    = ($^O =~ m/^(Windows|MSWin)/i ? "$ADE_NT_ROOT/bin/ade.exe" : 'ade');
+    $EXPECT = ($^O =~ m/^(Windows|MSWin)/i ? "$MKSROOT/expect.exe"      : 'expect');
+    $AIMEUSER   = File::Spec->join($Bin, 'aimeuser');
+    $LDAPSEARCH = 'ldapsearch';
+    $LS         = ($^O =~ m/^(Windows|MSWin)/i ? "$MKSROOT/ls.exe" : 'ls');
+    $PERL       = $ENV{'PERL'}
+        || (
+        $^O =~ m/^(Windows|MSWin)/i
+        ? "$ADE_NT_ROOT/perl5.8/bin/perl.exe"
+        : "$_USR_LOCAL_BIN/perl5.8"
+        );
+
+    use vars qw(
+        $dbh $count $debug $exec $log $numEntries $retStatus $test $trace
+        $verbose
+    );
+    ($dbh, $count, $debug, $exec, $log, $numEntries, $retStatus, $test, $trace, $verbose)
+        = (0, 0, -1, 0, -1, 'numEntries', 0, 0, -1, -1);
+
+    use vars qw(
+        $all $label $list $groupFlag $locationFlag $mailFlag
+        $managerFlag $namesFlag $orgFlag $rawFlag $reportsFlag
+        $telephoneFlag $titleFlag $uidFlag
+    );
+    (
+        $all,         $label,         $list,      $groupFlag, $locationFlag,
+        $mailFlag,    $managerFlag,   $namesFlag, $orgFlag,   $rawFlag,
+        $reportsFlag, $telephoneFlag, $titleFlag, $uidFlag
+    ) = (1, NIL, -1, -1, -1, -1, -1, -1, 0, -1, 0, -1, -1, -1);
+
+    use vars qw( %ade_info %area_codes %uids @cmd_args @tempfiles @users );
+    %area_codes = (
+        27  => 'Africa/Johannesburg',    # ZAF
+        35  => 'Europe/Dublin',          # IRL
+        44  => 'Europe/London',          # GMT
+        57  => 'America/Bogota',         # COL
+        61  => 'Australia/Brisbane',     # AUS
+        65  => 'Asia/Singapore',         # SG
+        91  => 'Asia/Calcutta',          # IND
+        408 => 'America/Los_Angeles',    # CA
+        484 => 'America/New_York',       # PA
+        505 => 'America/Denver',         # NM
+        603 => 'America/New_York',       # NH
+        650 => 'America/Los_Angeles',    # CA
+        703 => 'America/New_York',       # VA
+        781 => 'America/New_York',       # MA
+        801 => 'America/Denver',         # UT
+        908 => 'America/New_York',       # NJ
+        919 => 'America/New_York',       # NC
+        949 => 'America/Los_Angeles',    # CA
+    );
+    @cmd_args = @ARGV;
+
+    # convert --option to -option
+    foreach (@cmd_args) {
+        s/^[-]+/-/;
+    }
+    $trace = 1 if (scalar grep { /^-trace$/ } @cmd_args);
+    @tempfiles = ();
+
+    unless ((defined $ENV{'ADE_SAVE_ORACLE_HOME'}) or ($^O =~ m/^(Windows|MSWin)/i)) {
+        my $prog = File::Spec->join($Bin, 'doperldb');
+        my @cargs = ($prog, $0, @ARGV);
+        if ($verbose == 1) {
+            my $cmd = "@cargs";
+            printf("%s: %s\n", 'command', $cmd);
+        }
+
+        #my $rc = system(@cargs) >> 8;
+        #exit($rc);
+    }
+}
+
+# -----------------------------------------------------------------------------
+# DBI usage
+# -----------------------------------------------------------------------------
+##use lib $NDE_HOME . '/ade/bin/perl/cpan_modules/' . $^O;
+#use DBI;
+#use DBD::Oracle qw( :ora_types );
+
+# ------------------------------------------------------------------------------
+# Imports from local packages
+# ------------------------------------------------------------------------------
+use lib $Bin;
+use setenv qw( $DEVNULL $USERNAME );
+use setenv qw(
+    isRestricted log_usage joinpath
+    print_restricted print_usage print_version
+    setOutputAutoflush setVerbose sort_uniq trim
+);
+
+#use lib $MRGREQ_ULPM;
+#use dbiUtils qw( db_connect getRows );
+
+# ------------------------------------------------------------------------------
+#                         S U B R O U T I N E S
+# ------------------------------------------------------------------------------
+
+sub cleanAndexit(;$);
+sub debug_trace(;$$$);
+sub getAreaCode($);
+sub getLDAP($);
+sub getLDAPhash($);
+sub getLocation($);
+sub getManager($);
+sub getMail($$);
+sub getName($$);
+sub getOrg($);
+sub getTelephone($);
+sub getTimezone($);
+sub getTitle($);
+sub initialize();
+sub parse_args();
+sub print_user($);
+sub print_reports($$);
+sub signal_handler($);
+sub trace_cmd($;$$);
+sub warning_handler($);
+
+# ------------------------------------------------------------------------------
+# Display a debug trace message
+# ------------------------------------------------------------------------------
+sub debug_trace(;$$$) {
+    my ($name, $r_values, $OUT) = @_;
+    if (   ((defined $main::debug) and ($main::debug > 0))
+        or ((defined $main::trace) and ($main::trace > 0))) {
+        my @values = ();
+        @values = @{$r_values} if ($r_values);
+        foreach (@values) {
+            $_ = NIL unless (defined $_);
+        }
+        my ($sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst) = localtime();
+        my $timestamp = sprintf("%02d:%02d:%02d", $hour, $min, $sec);
+        if (defined $OUT) {
+            printf($OUT "%s => %s %s\n", $timestamp, $name, "@values");
+        }
+        else {
+            printf("%s => %s %s\n", $timestamp, $name, "@values");
+        }
+    }
+
+    return;
+}
+
+# ------------------------------------------------------------------------------
+# Show cmd being executed (if $verbose)
+# ------------------------------------------------------------------------------
+sub trace_cmd($;$$) {
+    debug_trace('trace_cmd($;$$)', \@_);
+
+    my ($r_cmd, $progname, $printit) = @_;
+    my $cmd = "@{$r_cmd}";
+    $cmd =~ s#[/]#\\#g if ($IS_WINDOWS);
+
+    unless ($progname) {
+        $progname = File::Basename::basename((split(' ', $cmd))[0]);
+    }
+    my $prefix = $progname . ' command used:';
+
+    $printit = $verbose unless (defined $printit);
+    if ($printit == 1) {
+        print(PGBREAK);
+        printf("%s\n    %s\n", $prefix, $cmd);
+        print(PGBREAK);
+    }
+
+    return ($cmd);
+}
+
+# ------------------------------------------------------------------------------
+# Clean up temp files and exit with status
+# ------------------------------------------------------------------------------
+sub cleanAndexit(;$) {
+    debug_trace('cleanAndexit(;$)', \@_);
+
+    my ($status) = $_[0];
+    $status = $retStatus unless (defined $status);
+
+    unlink(@tempfiles) if (scalar @tempfiles);
+    print(NEWLINE) if ($status);
+
+    # Disconnect the database handle(s) to the database
+    if ($dbh) { $dbh->disconnect; $dbh = 0; }
+
+    exit($status);
+}
+
+# ------------------------------------------------------------------------------
+# CTRL-C Signal handler
+# ------------------------------------------------------------------------------
+sub signal_handler($) {
+    debug_trace('signal_handler($)', \@_);
+
+    my ($signal) = @_;
+    if (defined $signal) {
+        printf("\n%s\n", "Signal $signal caught; exiting program . . .");
+        cleanAndexit(1);
+    }
+
+    return;
+}
+
+# ------------------------------------------------------------------------------
+# Warning handler
+# ------------------------------------------------------------------------------
+sub warning_handler($) {
+    debug_trace('warning_handler($)', \@_);
+
+    my ($warning) = @_;
+    chomp($warning);
+    printf("%s\n", $warning);
+    log_usage('Error: ' . $warning) unless (1 == 1);
+
+    return (0);
+}
+
+# ------------------------------------------------------------------------------
+# Initialize program
+# ------------------------------------------------------------------------------
+sub initialize() {
+    debug_trace('initialize()', \@_);
+
+    # Register an interrupt callback to close the cursors and disconnect
+    $SIG{'HUP'}  = \&signal_handler;
+    $SIG{'INT'}  = \&signal_handler;
+    $SIG{'QUIT'} = \&signal_handler;
+    $SIG{'TERM'} = \&signal_handler;
+
+    setOutputAutoflush();
+
+    # -------------------------------------------------------------------
+    # Oh oh... caught using working copy...
+    # -------------------------------------------------------------------
+    if (isRestricted()) {
+        print_restricted() unless (1 == 1);
+    }
+
+    return;
+}
+
+# ------------------------------------------------------------------------------
+# Return the user's display name
+# ------------------------------------------------------------------------------
+sub getName($$) {
+    debug_trace('getName($$)', \@_);
+
+    my ($r_id, $key) = @_;
+    my $name = $$r_id{'displayname'} || lc($key);
+    $name =~ s/[_]/ /g unless ($rawFlag == 1);
+
+    return ($name);
+}
+
+# ------------------------------------------------------------------------------
+# Return the user's email address
+# ------------------------------------------------------------------------------
+sub getMail($$) {
+    debug_trace('getMail($$)', \@_);
+
+    my ($r_id, $key) = @_;
+    my $mail = $$r_id{'mail'} || NIL;
+    return ($mail) if ($rawFlag == 1);
+
+    $mail = lc($key) . '@oracle.com' unless ($mail);
+    $mail =~ s/[_]/./g;
+
+    return ($mail);
+}
+
+# ------------------------------------------------------------------------------
+# Return the manager's email address
+# ------------------------------------------------------------------------------
+sub getManager($) {
+    debug_trace('getManager($)', \@_);
+
+    my ($r_id) = @_;
+    my $manager = $$r_id{'manager'} || NIL;
+
+    if ($manager) {
+        $manager =~ s/^cn=([^,]+)[,].*/$1/i;
+        $manager =~ s/[_]/./g;
+        $manager .= '@oracle.com';
+    }
+
+    return (lc($manager));
+}
+
+# ------------------------------------------------------------------------------
+# Return the user's City,State Country
+# ------------------------------------------------------------------------------
+sub getLocation($) {
+    debug_trace('getLocation($)', \@_);
+
+    my ($r_id) = @_;
+    my $office = $$r_id{'physicaldeliveryofficename'} || NIL;
+    my $city   = $$r_id{'city'}                       || NIL;
+    my $state  = $$r_id{'state'}                      || NIL;
+    $state = uc($state);
+    my $country = $$r_id{'c'} || $$r_id{'orcl_usr_cty_code'} || NIL;
+    $country = uc($country);
+    $country = $$r_id{'c'} if ($country eq 'ZZZ');
+    $country = 'USA' if ($country eq 'US');
+    $country = 'IND' if ($country eq 'IN');
+    my $location = NIL;
+    $location = $city if ($city and ($city ne '-'));
+    $location = join(CSV, $location, uc($state))
+        if ($location and $state and ($state ne '-'));
+    $location = $office unless ($location);
+    $location = '*'     unless ($location);
+    $location .= WS . uc($country) if ($country);
+    $location = trim($location);
+
+    return ($location);
+}
+
+# ------------------------------------------------------------------------------
+# Return the user's CC - Group
+# ------------------------------------------------------------------------------
+sub getOrg($) {
+    debug_trace('getOrg($)', \@_);
+
+    my ($r_id) = @_;
+    my $CC    = $$r_id{'orclcorpcostcenter'} || NIL;
+    my $group = $$r_id{'ou'}                 || NIL;
+    my $org   = $CC                          || NIL;
+    if ($group) {
+        $org .= ' - ' if ($org);
+        $org .= $group;
+    }
+
+    return ($org);
+}
+
+# ------------------------------------------------------------------------------
+# Return the user's Title
+# ------------------------------------------------------------------------------
+sub getTitle($) {
+    debug_trace('getTitle($)', \@_);
+
+    my ($r_id) = @_;
+    my $title = $$r_id{'title'} || NIL;
+    return ($title) if ($rawFlag == 1);
+
+    $title =~ s/\s+/ /g;
+    $title =~ s/Cio/CIO/;
+    $title =~ s/Vice[ ]President/VP/i;
+    $title =~ s/Svp/Senior VP/i;
+    $title =~ s/Vp[ ,-]+/VP, /i;
+    $title =~ s/S[n]?r[. ]/Senior /i;
+    $title =~ s/:St/:Server Technologies/i;
+    $title =~ s/Sw/Software/i;
+    $title =~ s/SOFTWARE/Software/;
+    $title =~ s/DEVELOPER/Developer/;
+    $title =~ s/Director[ ]/Director, /i;
+    $title =~ s/Cmts/Consulting Member Technical Staff/i;
+    $title =~ s/Pmts/Principal Member Technical Staff/i;
+    $title =~ s/Principal[ ]Technical/Principal Member Technical/;
+    $title =~ s/[ ]MTS/ Member Technical Staff/i;
+    $title =~ s/Techincal/Technical/;
+    $title =~ s/Tech[ ]/Technical /;
+    $title =~ s/Member[,]/Member /i;
+    $title =~ s/[ ]Of[ ]/ /i;
+    $title =~ s/[ ]And[ ]/ & /i;
+    $title =~ s/Db/Database/i;
+    $title =~ s/Ddr/DDR/;
+    $title =~ s/It[ ]/IT /;
+    $title =~ s/:Em/:EM/;
+    $title =~ s/Mg[m]?t/Management/i;
+    $title =~ s/Qa/Quality Assurance/i;
+    $title =~ s/[,][ ][-][ ]/, /;
+    $title =~ s/[,][ ][&][ ]/ & /;
+    $title =~ s/\s+/ /g;
+
+    return ($title);
+}
+
+# ------------------------------------------------------------------------------
+# Return the user's Telephone
+# ------------------------------------------------------------------------------
+sub getTelephone($) {
+    debug_trace('getTelephone($)', \@_);
+
+    my ($r_id) = @_;
+    my $telephone =
+           $$r_id{'telephonenumber'}
+        || $$r_id{'orclbeehivephonenumber'}
+        || NA;
+    return ($telephone) if ($rawFlag == 1);
+
+    if ($telephone ne NA) {
+        my $prog = joinpath($Bin, 'phone.pl');
+        my @cargs = ($prog, "'$telephone'");
+        my $cmd = trace_cmd(\@cargs);
+        chomp($telephone = `$cmd`);
+    }
+
+    return ($telephone);
+}
+
+# ------------------------------------------------------------------------------
+# Return the user's telephone Area code
+# ------------------------------------------------------------------------------
+sub getAreaCode($) {
+    debug_trace('getAreaCode($)', \@_);
+
+    my ($r_id) = @_;
+    my $area_code = 0;
+    my $telephone = getTelephone($r_id) || NIL;
+    return ($area_code) unless ($telephone);
+
+    ($area_code) = split('[.]', $telephone);
+
+    return ($area_code);
+}
+
+# ------------------------------------------------------------------------------
+# Return the user's Timezone
+# ------------------------------------------------------------------------------
+sub getTimezone($) {
+    debug_trace('getTimezone($)', \@_);
+
+    my ($r_id) = @_;
+    my $timezone = $$r_id{'orcltimezone'} || NIL;
+    return ($timezone) if ($rawFlag == 1);
+
+    # Check for known area codes
+    unless ($timezone) {
+        my $area_code = getAreaCode($r_id);
+        $timezone = $area_codes{$area_code} || NIL;
+    }
+
+    # Check for known locations
+    unless ($timezone) {
+        my $location = getLocation($r_id);
+        if ($location =~ m/,(CA|NV|OR|WA) US[A]?$/) {
+            $timezone = 'America/Los_Angeles';    # PST8PDT
+        }
+        elsif ($location =~ m/,(AZ|CO|ID|MT|NM|UT|WY) US[A]?$/) {
+            $timezone = 'America/Denver';         # MST7MDT
+        }
+        elsif ($location =~ m/,(AL|AR|IA|IL|KS|LA|MN|MO|MS|ND|NE|OK|SD|TX|WI) US[A]?$/) {
+            $timezone = 'America/Chicago';        # CST6CDT
+        }
+        elsif ($location =~
+m/,(CT|DE|FL|GA|IN|KY|MA|MD|ME|MI|NC|NH|NJ|NY|OH|PA|RI|SC|TN|VA|VT|WV) US[A]?$/
+            ) {
+            $timezone = 'America/New_York';       # EST5EDT
+        }
+        elsif ($location =~ m/,(AK) US[A]?$/) {
+            $timezone = 'America/Anchorage';      # AKST9AKDT
+        }
+        elsif ($location =~ m/,(HI) US[A]?$/) {
+            $timezone = 'Pacific/Honolulu';       # HST10
+        }
+        elsif ($location =~ m/,(KA) IN[D]?$/) {
+            $timezone = 'Asia/Calcutta';          # IST-19800IST
+        }
+        elsif ($location =~ m/ GB[R]?$/) {
+            $timezone = 'Europe/London';          # GMT0BST
+        }
+    }
+
+    # Check for obvious mistypes (91.* 'Europe/London')
+    if (($timezone eq 'Europe/London') or ($timezone eq 'GMT')) {
+        my $area_code = getAreaCode($r_id);
+        $timezone = $area_codes{$area_code} if (defined $area_codes{$area_code});
+    }
+
+    return ($timezone);
+}
+
+# ------------------------------------------------------------------------------
+# Return a hash of LDAP name/value pairs
+# ------------------------------------------------------------------------------
+sub getLDAPhash($) {
+    debug_trace('getLDAPhash($)', \@_);
+
+    my ($r_data) = @_;
+    my $key      = NIL;
+    my %id       = ();
+    my %ids      = ();
+
+    foreach my $data (@{$r_data}) {
+        if ($data =~ m/^#.* ORACLE[.]COM$/i) {
+            if (scalar keys %id) {
+                my %ldap = %id;
+                $ids{$key} = \%ldap;
+                %id = ();
+            }
+            ($key = uc($data)) =~ s/^#[ ]([^,]+)[,].*/$1/;
+            next;
+        }
+
+        if ($data =~ m/^#\s+($numEntries):\s+(\d+)\s*$/) {
+            $ids{$1} = $2;
+            next;
+        }
+
+        next if (($data =~ m/^\s*$/) or ($data =~ m/^\s*#/));
+
+        my ($name, $value) = split(SEP, $data, 2);
+        if ($value) {
+            $name  = trim($name);
+            $value = trim($value);
+            if (defined $id{$name}) {
+                my @values = split(';', $id{$name});
+                push(@values, $value);
+                @values = sort_uniq(@values);
+                $value = join(';', @values);
+            }
+            $value = uc($value) if ($name eq 'cn');
+            $id{$name} = $value;
+        }
+    }
+
+    if (scalar keys %id) {
+        my %ldap = %id;
+        $ids{$key} = \%ldap;
+    }
+
+    return (%ids);
+}
+
+# ------------------------------------------------------------------------------
+# Get a user's LDAP info
+# ------------------------------------------------------------------------------
+sub getLDAP($) {
+    debug_trace('getLDAP($)', \@_);
+
+    my ($arg) = @_;
+    $arg = trim($arg);
+    (my $user = uc($arg)) =~ s/[@].*//;
+    $user =~ s/[. ]/_/g;
+    my @cargs = (
+        $LDAPSEARCH, '-x', '-p', '389', '-h', 'gmldap.oraclecorp.com', '-b',
+        'dc=oracle,dc=com', "cn=$user",
+    );
+    my $cmd = trace_cmd(\@cargs);
+    chomp(my @lines = `$cmd 2>$DEVNULL`);
+    my %ids = getLDAPhash(\@lines);
+
+    return (%ids);
+}
+
+# ------------------------------------------------------------------------------
+# Display a user's LDAP info
+# ------------------------------------------------------------------------------
+sub print_user($) {
+    debug_trace('print_user($)', \@_);
+
+    my ($arg) = @_;
+
+    return if (defined $uids{lc($arg)});
+
+    my $entries = ($all == 1 ? 8 : 0);
+    $entries++ if ($titleFlag == 1);
+    $entries++ if ($groupFlag == 1);
+    $entries++ if ($locationFlag == 1);
+    $entries++ if ($managerFlag == 1);
+    $entries++ if ($mailFlag == 1);
+    $entries++ if ($telephoneFlag == 1);
+    $entries++ if ($uidFlag == 1);
+    $entries++ if ($namesFlag == 1);
+
+    my %ids = getLDAP($arg);
+
+    unless (defined $ids{$numEntries}) {
+        my @cargs = ($AIMEUSER, $arg);
+        my $cmd = trace_cmd(\@cargs);
+        chomp(my $line = `$cmd 2>$DEVNULL`);
+        my ($user, $mail) = split(' ', $line);
+        %ids = getLDAP($mail);
+        unless (defined $ids{$numEntries}) {
+            print(NEWLINE) if ($entries > 1);
+            printf("Error: %s\n", "$arg is not available");
+            return;
+        }
+    }
+
+    foreach my $key (sort keys %ids) {
+        next if ($key eq $numEntries);
+
+        my %id        = %{$ids{$key}};
+        my $name      = getName(\%id, $key);
+        my $title     = getTitle(\%id);
+        my $org       = getOrg(\%id);
+        my $location  = getLocation(\%id);
+        my $manager   = getManager(\%id);
+        my $mail      = getMail(\%id, $key);
+        my $names     = $id{'cn'} || uc($key);
+        my $telephone = getTelephone(\%id);
+        my $timezone  = getTimezone(\%id);
+        my $uid       = $id{'uid'} || lc($key);
+
+        print(NEWLINE) if (($entries > 1) or ($mailFlag != 1));
+        printf(FORMAT_1, 'Name', $name) unless ($mailFlag == 1);
+
+        # if (($all == 1)
+        #     or ($titleFlag == 1)
+        #     or ($groupFlag == 1)
+        #     or ($locationFlag == 1)
+        #     or ($managerFlag == 1)
+        #     or ($mailFlag == 1)
+        #     or ($telephoneFlag == 1)
+        #     or ($uidFlag == 1)
+        #     or ($namesFlag == 1));
+
+        printf(FORMAT_1, 'Title', $title) if (($all == 1) or ($titleFlag == 1));
+        printf(FORMAT_1, 'Group', $org)   if (($all == 1) or ($groupFlag == 1));
+        printf(FORMAT_1, 'Location', $location)
+            if (($all == 1) or ($locationFlag == 1));
+        printf(FORMAT_1, 'Timezone', $timezone) if ($all == 1);
+        printf(FORMAT_1, 'Manager',  $manager)  if (($all == 1) or ($managerFlag == 1));
+        printf(FORMAT_1, 'Mail',     $mail)     if (($all == 1) or ($mailFlag == 1));
+        printf(FORMAT_1, 'Telephone', $telephone)
+            if ($all == 1 or ($telephoneFlag == 1));
+        printf(FORMAT_1, 'Userid', lc($uid)) if (($all == 1) or ($uidFlag == 1));
+        printf(FORMAT_1, 'Names', $names) if ($namesFlag == 1);
+
+        $uids{lc($arg)}  = $mail;
+        $uids{lc($mail)} = $uid;
+
+        $count++;
+    }
+
+    return;
+}
+
+# ------------------------------------------------------------------------------
+# Display all direct reports LDAP info
+# ------------------------------------------------------------------------------
+sub print_reports($$) {
+    my ($mgr, $orgFlag) = @_;
+    my @cargs = ($AIMEUSER, '-r', $mgr);
+    my $cmd = trace_cmd(\@cargs);
+    chomp(my @directs = `$cmd 2>$DEVNULL`);
+    shift(@directs);    # remove manager as first entry
+
+    foreach my $direct (sort @directs) {
+        my ($user, $mail) = split(' ', $direct);
+        print_user($mail);
+        print_reports($user, $orgFlag) if ($orgFlag == 1);
+    }
+}
+
+# ------------------------------------------------------------------------------
+#                            O P T I O N S
+# ------------------------------------------------------------------------------
+
+# ------------------------------------------------------------------------------
+# Parse the command line args
+# ------------------------------------------------------------------------------
+sub parse_args() {
+    debug_trace('parse_args()', \@_);
+
+    my $usage = "
+Usage: $MYNAME [<option>] <username> [.. <username>]
+
+ username         : Can be either global uid or email address
+
+ options:
+   -help          : Display this text
+   -all           : Show all the attributes (default: -all)
+   -group         : Show the group
+   -location      : Show the location (City,State Country)
+   -mail          : Show the mail address
+   -manager       : Show the manager mail address
+   -reports       : Show all the direct reports
+   -org           : Show all the reports
+   -telephone     : Show the telephone number
+   -title         : Show the title
+   -uid           : Show the global uid
+";
+    my $help_text = $usage . "
+ Use to show the LDAP data for a user.
+
+ Example:
+
+ \$ $MYNAME mark.goodrich\@oracle.com
+
+ Name      : Mark Goodrich
+ Title     : Consulting Member Technical Staff
+ Group     : SM68 Development Tools
+ Location  : Nashua,NH USA
+ Timezone  : America/New_York
+ Manager   : todd.guay\@oracle.com
+ Mail      : mark.goodrich\@oracle.com
+ Telephone : 603.897.3820
+ Userid    : mgoodric
+";
+    my $SIG_WARNING = $SIG{__WARN__};
+    $SIG{__WARN__} = \&warning_handler;
+    GetOptions(
+        'help|h' => sub {
+            print_version($MYNAME, $MYVERSION, $MYCOPYRIGHT);
+            print_usage($help_text);
+        },
+        'version|v' => sub {
+            print_version($MYNAME, $MYVERSION, $MYCOPYRIGHT);
+            print(NEWLINE);
+            cleanAndexit(0);
+        },
+        'all'          => \$all,
+        'debug:i'      => \$debug,
+        'exec'         => \$exec,
+        'group!'       => \$groupFlag,
+        'label=s'      => \$label,
+        'list'         => \$list,
+        'location|l!'  => \$locationFlag,
+        'log!'         => \$log,
+        'mail|email!'  => \$mailFlag,
+        'manager|mgr!' => \$managerFlag,
+        'names!'       => \$namesFlag,
+        'org'          => \$orgFlag,
+        'reports|r'    => \$reportsFlag,
+        'raw'          => \$rawFlag,
+        'telephone|t!' => \$telephoneFlag,
+        'title!'       => \$titleFlag,
+        'test!'        => \$test,
+        'trace:i'      => \$trace,
+        'uid!'         => \$uidFlag,
+        'verbose!'     => \$verbose,
+        )
+        or do {
+        print_usage($usage, 1);
+        };
+    $SIG{__WARN__} = $SIG_WARNING;
+
+    $debug = ($debug == 0 ? 1 : ($debug == -1 ? 0 : $debug));
+    $trace = ($trace == 0 ? 1 : ($trace == -1 ? 0 : $trace));
+    if ($debug or $trace) {
+        $test = 1 if ($debug);
+        $trace = 1 unless ($trace);
+        $verbose = 1;
+    }
+
+    $all = 0
+        if (($locationFlag == 1)
+        or ($groupFlag == 1)
+        or ($managerFlag == 1)
+        or ($mailFlag == 1)
+        or ($namesFlag == 1)
+        or ($telephoneFlag == 1)
+        or ($titleFlag == 1)
+        or ($uidFlag == 1));
+
+    $reportsFlag = 1 if ($orgFlag == 1);
+
+    setVerbose($verbose, $trace);
+    printf("PERL: %s v%vd\n", $^X, $^V) if ($verbose == 1);
+
+    @users = split(CSV, join(CSV, @ARGV));
+    push(@users, $USERNAME) unless (scalar @users);
+
+    if (($log != 0) and ($test != 1) and ($debug == 0)) {
+        log_usage() unless (1 == 1);
+    }
+
+    return;
+}
+
+# ------------------------------------------------------------------------------
+#                                  M A I N
+# ------------------------------------------------------------------------------
+
+initialize();
+parse_args();
+
+foreach my $arg (@users) {
+    $arg = trim($arg);
+    print_user($arg) if ($arg);
+    print_reports($arg, $orgFlag) if ($reportsFlag == 1);
+}
+
+print(NEWLINE);
+
+if ($count > 1) {
+    printf("Total of %d users\n", $count);
+    print(NEWLINE);
+}
+
+# ------------------------------------------------------------------------------
+#                                   D O N E
+# ------------------------------------------------------------------------------
+cleanAndexit($retStatus);
+
+END {
+
+    # Disconnect the database handle(s) to the database
+    if ($dbh) { $dbh->disconnect; $dbh = 0; }
+}
+
+# ------------------------------- End of File ----------------------------------

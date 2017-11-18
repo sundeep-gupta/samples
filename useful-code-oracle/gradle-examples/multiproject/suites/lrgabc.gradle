@@ -1,0 +1,5 @@
+project(':lrgabc') {
+    task block1 << {
+        println "Hello from lrgabc.block1"
+    }
+}

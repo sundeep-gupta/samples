@@ -1,0 +1,5 @@
+if (project.hasProperty('props')) {
+    project.properties['props'].split(',').each { 
+      println it
+    }
+}

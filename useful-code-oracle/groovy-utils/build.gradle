@@ -1,0 +1,347 @@
+apply plugin: 'groovy'
+
+import org.freesource.artifactory.Artifactory
+import org.freesource.artifactory.RemoveArtifact
+import org.freesource.artifactory.SearchArtifact
+import org.freesource.git.Git
+
+import org.freesource.gradle.GradleDependencyComparatorTask
+import org.freesource.gradle.DoubleAction
+import com.oracle.emdi.gradle.testinfra.IntegrationTestTask
+artifactory_password = 'null'
+ext.OMC_ROOT = '/scratch/skgupta/git_storage/INTEGRATION'
+project.extensions.create('artifactory', Artifactory, artifactoryURL, artifactory_user, artifactory_password)
+/**************************** FUNCTIONS *************************************/
+/**
+ * Method to return the storage location.
+ */
+ext.getStorageLoc = {
+    String devinfraLoc = '/usr/dev_infra/generic'
+    String storageLoc = ['/bin/sh' , devinfraLoc + '/emdev/pub/getStorageServerLoc.sh','-base'].execute().text.trim()
+    println "The storage location is " + storageLoc
+    return storageLoc
+}
+
+ext.getPplData = {
+    if (project.hasProperty('pplData')) {
+        return project.pplData
+    }
+    String storageLoc = getStorageLoc()
+    File pplData = new File(storageLoc + '/emdi/pub/intg/release/master_ppldata')
+    if (!pplData.exists()) {
+        throw new FileNotFoundException("File ${pplData.absolutePath} does not exist. Unable to determine the SAAS_VERSION value.")
+    }
+    Properties pplDataProps = new Properties()
+    pplDataProps.load(pplData.newInputStream())
+    project.ext.pplData = pplDataProps
+    return project.pplData
+}
+
+
+/**
+ * Method to get the latest pipeline version (SAAS_VERSION).
+ *
+ * Algorithm
+ * ----------
+ * 1. Get the storage server location.
+ * 2. Read the pipeline data file from the storage location and read SAAS_VERSION property.
+ */
+ext.getSaasVersion = {
+    def pplDataProps = getPplData()
+    String saasVersion = pplDataProps.getProperty('SAAS_VERSION')
+    if (saasVersion == null) {
+        throw new GradleException("Property SAAS_VERSION is not set in file ${pplData.absolutePath})")
+    }
+    return saasVersion
+}
+ext.getAllRepositories = {
+    def pplDataProps = getPplData()
+    List<String> lrgs = pplDataProps.getProperty('ALL_REPOS').split(' ')
+    return lrgs   
+}
+
+ext.repoList = getAllRepositories()
+
+
+String getFarmIdForBuild(String buildid) {
+    return new URL('http://bldvista.us.oracle.com:9999/api/bldvista.cgi?apireq=getfarmidforstage&buildid=' + buildid).getText()
+}
+
+String getLatestStageRun(String saasVersion) {
+    String u = 'http://artifactory.oraclecorp.com/artifactory/api/search/latestVersion?g=com.oracle.emaas.deploy.release&a=deploymanifest&v=' + saasVersion + '-*&repos=emaas-stage-local'   
+    return new URL(u).getText()
+}
+
+Map<String, String> getFarmConfig(String jobId) {
+    String foutput = "farm showjobs -d -j $jobId".execute().text
+    foutput.split("\n").each {
+        if (it.contains('config option')) {
+            println it
+            List<String> configs = it.split(':')[1].trim().tokenize(';')
+            configs.each { println it }
+        }
+    }
+    return null
+}
+
+String getFarmResultLocation(String farmId) {
+    def output = "farm showdiffs -job $farmId".execute().text
+    String loc = null;
+    output.split("\n").each { line ->
+        if (line.contains('Results in')) {
+            println line
+            def tokens = line.tokenize(' ')
+            println tokens[2]
+            loc = tokens[2]
+        }
+    }
+    return loc
+}
+
+
+
+task quickSearch(type: SearchArtifact) {
+    search = project.hasProperty('find') ? project.property('find') : null
+    reposToSearch = project.hasProperty('repos') ? project.property('repos').tokenize(',') : []
+}
+
+/** Compares the dependencies downloaded for the given LRG in two farm jobs */
+task compareGradleDependencies(type: GradleDependencyComparatorTask)  {
+    baseRun = project.hasProperty('base-run') ? project.property('base-run') : null
+    targetRun = project.hasProperty('target-run') ? project.property('target-run') : null
+    lrgName = project.hasProperty('lrg-name') ? project.property('lrg-name') : null
+}
+
+
+task refreshMaster << {
+    String cloneUrl = "git@orahub.oraclecorp.com"
+    String branch = project.hasProperty('branch') ? project.branch : 'master'
+    File omcRoot = new File(project.OMC_ROOT)
+    project.repoList.each { repoName ->
+        Git git = new Git(cloneUrl, repoName, omcRoot)
+        if (new File(omcRoot, repoName).exists()) {
+            println "Uncheckout any changes ${repoName}..."
+            git.uncheckoutAll()
+            println "checkout to ${branch} branch."
+            git.checkoutBranch(branch);
+            println "Pulling latest."
+            git.pullLatest();
+        } else {
+            try {
+                print "Cloning ${repoName}..."
+                git.clone()
+                println "OK"
+            }
+            catch (Exception e) {
+                println "FAILED : ${e}"
+            }
+            if (!branch.equals('master')) {
+                try {
+                    print "Checkout branch, ${branch}"
+                    git.checkoutBranch(branch)
+                    println "OK"
+                } catch (Exception e) {
+                    println "FAILED: ${e}"
+                }
+            }
+        }
+    }
+}
+
+task cloneAllRepos << {
+    String cloneUrl = "git@orahub.oraclecorp.com"
+    String branch = project.hasProperty('branch') ? project.branch : 'master'
+    project.repoList.each { repoName ->
+        Git git = new Git(cloneUrl, repoName, new File(project.OMC_ROOT))
+        try {
+            print "Cloning ${repoName}..."
+            git.clone()
+            println "OK"
+        }
+        catch (Exception e) {
+            println "FAILED : ${e}"
+        }
+        if (!branch.equals('master')) {
+            try {
+                print "Checkout branch, ${branch}"
+                git.checkoutBranch(branch)
+                println "OK"
+            } catch (Exception e) {
+                println "FAILED: ${e}"
+            }
+        }
+    }
+}
+
+task submitComponentLrgs {
+    if (project.hasProperty('EMDI_LOCAL_REPO') == false) {
+        throw new GradleException("Please specify graadle property EMDI_LOCAL_REPO");
+    }
+    if (!new File(project.EMDI_LOCAL_REPO).exists()) {
+        throw new GradleException("Location ${project.EMDI_LOCAL_REPO} does not exist.")
+    }
+    int i = 0;
+    project.repoList.each { repoName ->
+        String tName = repoName + 'SubmitFarm'
+        def t = project.tasks.create(name: tName, type: Exec) {
+            onlyIf {
+                new File(project.OMC_ROOT + '/' + repoName).exists()
+            }
+            ignoreExitValue true
+            workingDir project.OMC_ROOT + '/' + repoName
+            executable '/usr/dev_infra/generic/emdev/pub/smpfarm'
+            args '-hudsonbuild'
+            args '-pipeline',  'COMPONENT'
+            args '-config', 'ORG_GRADLE_PROJECT_PUB_MAVEN_MY_MAVEN_REPO=' + project.EMDI_LOCAL_REPO
+            args '-skips1s2'
+            args '-desc', repoName + '/L1 Run for all 1.24 Landing changes'
+            //if (i % 3 == 0) {
+            //    args '-config', 'USE_EM_SAAS=32GB_TEST'
+           // } else {
+                args '-goto12c'
+            //}
+            i++
+            standardOutput new FileOutputStream(new File(project.OMC_ROOT + "/${repoName}-smpfarm.log"))
+            errorOutput new FileOutputStream(new File(project.OMC_ROOT + "/${repoName}-smpfarm.err"))
+        }
+        dependsOn t
+    }
+}
+
+task buildAllRepos { // s(dependsOn:cloneAllRepos) {
+    def repoList = getAllRepositories()
+    def skipList = ['emcadna', 'emcapms']
+    repoList.each { repoName ->
+        String tName = repoName + 'Build'
+        File buildDir = new File(project.OMC_ROOT + '/' + repoName)
+        if (!buildDir.exists()) {
+            println "${repoName} skipped."
+            return
+        }
+        def t = project.tasks.create(name: tName, type: GradleBuild) {
+            tasks =[ 'clean', 'build','publishToMyMavenRepository', 'runS1Tests', 'runS2Tests']
+            startParameter.projectProperties = ['BuildID': 'test_build_with_l0']
+            dir = new File(project.OMC_ROOT + '/' + repoName)
+        }
+        dependsOn t
+    }
+}
+
+
+task getLatestStageFarmId << {
+    String latest = getLatestStageRun('1.13.0')
+    println "Latest promoted stage run is " + latest
+    String farmId = getFarmIdForBuild(latest)
+    println "The farm job for ${latest} build is ${farmId}"
+    getFarmConfig(farmId);
+    println getFarmResultLocation(farmId);
+}
+/************************ OBSOLETE TASKS ***********************************/
+
+String createPplPublish(File repoRoot, String repoName) {
+    String fileContent = """
+{ "files": [
+        {
+            "file": "build/distributions/lrgmetadata.zip",
+            "source": "local",
+            "group": "com.oracle.emaas.${repoName}.test"
+        },
+    ]
+}"""
+    
+    File pplPublishFile = new File(repoRoot, 'ppl_publish.json')
+    println "File : ${pplPublishFile.absolutePath}"
+    pplPublishFile.withWriter { writer ->
+        writer.println fileContent
+    }
+    return pplPublishFile.absolutePath
+}
+
+
+
+/**
+ * Redirects to SSO Login
+ */
+// String getPipelineProperty(String propertyName) {
+ //   String u = 'http://bldvista.us.oracle.com:9999/bldvista.cgi?page=pplinfo&sub1=ppldetails&pplver=master'
+  //  String html = new URL(u).getText()
+  //  println html
+  //  InputStream is = new ByteArrayInputStream(new URL(u).getText().getBytes(java.nio.charset.StandardCharsets.UTF_8))
+  //  Properties p = new Properties()
+  //  p.load(is)
+  //  return is[propertyName]
+//}
+// */
+
+
+/** Removes the artifacts of TestInfraPlugin & its dependents from artifactory **/
+task removeTestInfra (type: RemoveArtifact) {
+    group 'com.oracle.emaas.emdi'
+    artifactId 'TestInfraPlugin'
+    dependencies = ['JiraWebServices',  'ParseLrg', 'jirasso-library',  'lrgmanager', 'TestInfraPlugin-integ-tests']
+    version = project.hasProperty('testinfraVersion') ? project.property('testinfraVersion') : '1.0.0'
+    artifactoryRepoKey = 'emaas-sandbox-local'
+    removeDependencies = true
+}
+/*
+task removeArtifact(type: RemoveArtifact) {
+    artifactId project.hasProperty('testinfraVersion') ? project.property('testinfraVersion') : '1.0.0'
+    artifactoryRepoKey = 'emaas-sandbox-local'
+    removeDependencies =false
+}
+*/
+
+task compareClasspath << {
+    /**
+     * Job ID - 1
+     * JOB ID - 2
+     * LRG To Compare
+
+    File resultLoc1 = FarmUtils.getResultLocation(jobId1)
+    File resultLoc2 = FarmUtils.getResultLocation(jobId2)
+
+    LrgGradleOutParser parser1 = new LrgGradleOutParser(resultLoc1, lrgName)
+    LrgGradleOutParser parser2 = new LrgGradleOutParser(resultLoc2, lrgName)
+
+    ClasspathComparator comparator = new ClasspathComparator(parser1, parser2)
+    comparator.compare()
+    */
+
+
+}
+task createPplPublish << {
+    def repoList = ['emcapms', 'emcdms', 'emcitas', 'emclas', 'emcpa', 'emcpcs', 'emcpdf', 'emcpdm', 'emcpdp', 'emcpevms', 'emcplcm', 'emcpsf', 'emcpsm', 'emcpsrvs', 'emcpssf', 'emcpwd', 'emctas']
+    String cloneUrl = "git@orahub.oraclecorp.com"
+    repoList.each { repoName ->
+        Git git = new Git(cloneUrl, repoName, project.OMC_ROOT)
+
+        print "Cloning ${repoName}..."
+        git.clone()
+        println "OK"
+
+        print "Creating branch..."
+        git.createBranch("skgupta_${repoName}-fix-distributions")
+        println "OK"
+
+        print "Creating ppl_pulish.json ..."
+        String pplPublishFile = createPplPublish(git.getRepoRoot(), repoName)
+        println "OK"
+
+        print "Adding file to Git..."
+        git.add(pplPublishFile)
+        println "OK"
+
+        print "Commiting the changes... "
+        git.commitAll('Added ppl_publish.json')
+        println "OK"
+    }
+}
+
+
+/*
+task runComponentLrgs(type: IntegrationTestTask) {
+    repositories = ['emcdms', 'emcpdf', 'emcpsf', 'emcpssf', 'emcitas', 'emcpdm', 'emcpsm', 'emcapms', 'emcpsm', 'emcpwd', 'emcapms', 'emclas', 'emcpdp', 'emcpsrvs', 'emctas']
+    testinfraVersion = project.hasProperty('testinfraVersion') ? project.property('testinfraVersion') : null
+    logFile = file("runComponentLrgs-${testinfraVersion}.log")
+}
+*/

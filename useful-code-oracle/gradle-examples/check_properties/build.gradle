@@ -1,0 +1,12 @@
+task hello << {
+    println p1
+    println p2
+    HashMap<String, String> props = loadMyProperties()
+    println props['myprop']
+
+}
+HashMap<String, String> loadMyProperties() {
+    HashMap<String, String> props = new HashMap<String, String>();
+    props.put("myprop","myvalue");
+    return props;
+}

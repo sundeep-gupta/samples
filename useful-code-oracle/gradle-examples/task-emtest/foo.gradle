@@ -1,0 +1,3 @@
+task foo <<{
+    println "I'm foo run from the lrg file."
+}

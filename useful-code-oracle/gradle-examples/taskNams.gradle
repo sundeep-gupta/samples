@@ -1,0 +1,6 @@
+def taskNames = getGradle().getStartParameter().getTaskNames()
+taskNames.each { println it }
+
+task hello << {
+    println "Hey! I'm hello"
+}

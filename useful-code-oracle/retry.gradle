@@ -1,0 +1,13 @@
+task a << {
+    throw new GradleException("force failure")
+}
+
+task C <<(dependsOn: [a]) {
+}
+
+task b {
+    onlyIf { project.tasks.C.state.failure == null }
+    doFirst {
+        println "hello"
+    }
+}

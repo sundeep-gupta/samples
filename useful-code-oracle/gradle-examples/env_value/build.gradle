@@ -1,0 +1,8 @@
+task showMe {
+    def props = new HashMap<String, String>()
+    project.getProperties().each {
+        if (it.key == "env.PATH") {
+            println it.value + PATH_SEPARATOR +  System.getenv('PATH')
+        }
+    }
+}

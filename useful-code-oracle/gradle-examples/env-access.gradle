@@ -1,0 +1,25 @@
+// This example shows that we can access the env variables ... but cannot set.
+task env_example(type:Test) {
+    def home = System.getenv("HOME")
+//    environment 'FOO', 'bar'
+    println "env example " +  home
+   // println System.getenv('FOO')
+   // println System.getenv("HOME2")
+}
+def env_vars = ['NAME': 'SUNDEEP GUPTA']
+System.setProperty("AGE", "32");
+// Example to create the env variables to be passed to the task
+task perl_runner(type: Exec) {
+  environment env_vars
+  System.setProperty('AGE', '40')
+  System.setProperty('AGE2', '40')
+  println "AGE in perl_runner" + System.getProperty('AGE')
+  commandLine 'perl', '-e', 'print "perl_runner: NAME set here: \$ENV{NAME}\n"'
+
+}
+// Example to create the env variables to be passed to the task
+task perl_runner2(type: Exec, dependsOn: perl_runner) {
+  println "AGE in perl_runner2 " + System.getProperty("AGE")
+  println "AGE2 in perl_runn2" + System.getProperty("AGE2")
+  commandLine 'perl', '-e', 'print "perl_runner2: NAME: \$ENV{NAME}\n"'
+}

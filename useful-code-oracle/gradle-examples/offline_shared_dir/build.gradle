@@ -1,0 +1,7 @@
+buildscript {
+    def remoteFile = '/net/slc03sgh/scratch/skgupta/foo.txt'
+    println "In Buildscript block"
+    project.file(remoteFile).withWriter { out ->
+        out.writeLine("Hello World.")
+    }
+}

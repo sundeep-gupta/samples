@@ -1,0 +1,10 @@
+
+task 'mylrg1-hello' << {
+    print "Hello"
+}
+
+
+task 'mylrg1-world'(dependsOn: 'mylrg1-hello') << {
+    println "World " + project.name 
+}
+

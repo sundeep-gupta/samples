@@ -1,0 +1,31 @@
+apply plugin: 'maven-publish'
+apply plugin: 'groovy'
+repositories {
+    mavenLocal()
+    mavenCentral()
+        
+}
+/**
+ * Define the dependencies for compiling the plugin code
+ */
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
+}
+
+group = 'org.vncserver'
+//name = 'vncserver'
+version = '1.0'
+
+publishing {
+    repositories {
+        mavenLocal()
+    }
+
+    publications {
+        vncserverPublish(MavenPublication){
+            from components.java
+        }
+    }
+    
+}

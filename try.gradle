@@ -1,0 +1,29 @@
+def list = ['foo', '  bar', ' baz']
+
+def nl = list.collect { it.trim() }
+
+nl.each {
+    print it
+}
+/* Try something with Slash */
+String path = "D:/sync/Oracle Documents/Oracle Documents/Interview  - Hiring/Opening 2/Interviewing"
+
+//String path = "D:\\sync\\Oracle Documents\\Oracle Documents\\Interview  - Hiring\\Opening 2\\Interviewing"
+
+//println new File(path).exists()
+
+//println new File(path).absolutePath
+
+//println new File(path).canonicalPath
+
+//println path
+import java.nio.file.FileSystems
+
+//println FileSystems.getDefault().getPath("logs", "access.log").toString()
+
+println path.replaceAll("\\\\", "\\\\\\\\")
+println path
+
+println System.getProperty('os.name');
+println System.getProperty('os.version');
+println System.getProperty('os.arch');

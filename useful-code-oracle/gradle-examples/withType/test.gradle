@@ -1,0 +1,8 @@
+apply plugin: 'java'
+task mytest1 (type:Test) {
+
+}
+
+task mytest2 (type: Test) {
+
+}

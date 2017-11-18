@@ -1,0 +1,17 @@
+task setup << {
+    throw new GradleException("Setup failed.")
+    println "setup works."
+}
+
+task uitest << {
+    println "ui test works after setup."
+}
+tasks.uitest.dependsOn setup
+
+task cleanup {
+    mustRunAfter setup,uitest
+    doLast {
+        println "Cleanup worked."
+    }
+}
+task all(dependsOn: [ setup, uitest, cleanup])

@@ -1,0 +1,22 @@
+buildscript {
+    repositories {
+        mavenLocal()
+    }
+    dependencies {
+        classpath group:'org.vncserver', name:'vncserver', version:'1.0+'
+    }
+}
+
+apply plugin: 'vncserver'
+repositories {
+    mavenLocal()
+}
+
+
+task hello(type: Exec) {
+    commandLine 'touch', 'hello1.groovy'
+}
+
+vncserver {
+    applyTo hello
+}

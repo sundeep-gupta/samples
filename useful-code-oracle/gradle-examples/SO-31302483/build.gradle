@@ -1,0 +1,16 @@
+//apply plugin: 'application'
+apply plugin: 'distribution'
+distributions {
+    //I want win32 to include the same as the 'main' dist plus files in src/win32/dist
+    win32 { 
+        contents {
+            with project.distributions.main.getContents()
+        }
+    }
+
+    amd64 { 
+        contents {
+            from { libsDir }
+        }
+    }
+}

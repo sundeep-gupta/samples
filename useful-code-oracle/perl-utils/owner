@@ -1,0 +1,54 @@
+#!/bin/sh
+#
+# Generate a SQL report on the owner of the file given on the command line
+#
+# Usage: owner filename <prodbranch> <path> 
+#   	 for eg: owner kge.h RDBMS_MAIN rdbms/include/
+#
+# DB parameters
+Sid=toolsdb
+Host=staav18
+Port=1521
+
+#
+# Setup env to access the database
+ORACLE_HOME=/OracleProd/oracle9i
+ORACLE_SID=$Sid
+TWO_TASK="(DESCRIPTION = (ADDRESS = (PROTOCOL = TCP)(HOST = dadbeh05-vip.us.oracle.com)(PORT = 1521)) (ADDRESS = (PROTOCOL = TCP)(HOST = dadbeh06-vip.us.oracle.com)(PORT = 1521)) (LOAD_BALANCE = yes) (CONNECT_DATA = (SERVER = DEDICATED) (SERVICE_NAME = toolsdb.us.oracle.com) ) )"
+LD_LIBRARY_PATH=$ORACLE_HOME/lib
+
+export ORACLE_HOME ORACLE_SID TWO_TASK LD_LIBRARY_PATH
+
+unset ORA_NLS
+unset ORA_NLS32
+unset ORA_NLS33
+unset NLS_LANG
+
+#column backup        format a8
+#column path          format a60
+#column platform_name format a10
+#column component     format a20 
+#column product       format a10
+#column branch_name   format a10
+#
+# path,
+# product,
+# branch_name,
+# platform_name,
+# component,
+# Run the query
+$ORACLE_HOME/bin/sqlplus -s acct/valid <<.
+column filename      format a20
+column owner         format a8
+set heading off
+
+select 
+ filename,
+ owner,
+ backup
+from fowner.v_fowner\$file
+where upper(filename) like upper('$1%')
+and (upper(branch_name)= upper('$2') or 'x$2'='x')
+and (upper(path) = upper('$3') or 'x$3'='x');
+exit
+.

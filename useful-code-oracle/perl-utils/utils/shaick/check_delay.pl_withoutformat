@@ -1,0 +1,170 @@
+#!/usr/bin/perl
+use Date::Calc qw(:all);
+use Date::Manip qw(ParseDate UnixDate);
+$result_loc=$ARGV[0];
+$ref_time=$ARGV[1];
+
+if ( ! $ARGV[1] )
+{
+$ref_time=10
+}
+if ( ! $ARGV[0] ) {
+print "No result location given\n";
+print "Usage: check_delay.pl <Result loc> <Ref time>\n";
+exit 0;
+}
+if ( ! -e $result_loc ) {
+print "$result_loc not exist\n";
+print "Usage: check_delay.pl <Result loc> <Ref time>\n";
+exit 0;
+}
+
+$histfilename=`ls  $result_loc/*history.log`;
+chop($histfilename);
+print ":$histfilename:\n";
+open(FILE2,">$ENV{PWD}/result.out") or die "Can't open file $ENV{PWD}/result.out for writing";
+open ( FILE1, "$result_loc/selenium_cmd_timing.log") or die "Can't open file $result_loc/selenium_cmd_timing.log";
+$line_no=1;
+my @fnames;
+my ($month,$day,$year,$hh,$mm,$ss);
+my ($month2,$day2,$year2,$hh2,$mm2,$ss2);
+my ($tmpmonth2,$tmpday2,$tmpyear2,$tmphh2,$tmpmm2,$tmpss2);
+while (<FILE1>)
+{
+	@line_arr=split(/\|/);
+($tmp,$test_name)=split(/] +/,$line_arr[0]);
+if ( ! $prev_test_name)
+{
+$prev_test_name=$test_name;
+$fname="/tmp/$test_name".".out";
+open(FILE3,">$fname") or die "Can't open file $fname  for writing";
+push(@fnames,$fname);
+}
+
+if ( $test_name ne $prev_test_name )
+{
+$prev_test_name=$test_name;
+close(FILE3);
+$fname="/tmp/$test_name".".out";
+open(FILE3,">$fname") or die "Can't open file $fname  for writing";
+push(@fnames,$fname);
+}
+
+if ( $line_arr[2] >= $ref_time )
+{
+$time_taken=$line_arr[2];
+($tmp,$test_name)=split(/] +/,$line_arr[0]);
+($tmp1,$dtime)=split(/\[/,$tmp);
+#splice(@line_arr,0,4);
+$lin_str=join('|',@line_arr);
+print FILE2 "\n$lin_str\n";
+
+#parsing the date and form date which can be used to compare in history file.
+($month,$day,$year,$hh,$mm,$ss) = UnixDate($dtime,"%m","%d","%Y","%H","%M","%S");
+print "from log:$month $day $year $hh:$mm:$ss\n";
+
+#Add 5.00 hours to convert time zone.
+($year2,$month2,$day2,$hh2,$mm2,$ss2) = Add_Delta_DHMS( $year,$month,$day,$hh,$mm,$ss,0,5,0,0);
+$date_to_text = Date_to_Text($year2,$month2,$day2);
+($t1,$monthstr,$t2)=split(/-/,$date_to_text);
+print "Added 5.00: $month2 $monthstr $day2 $year2 $hh2:$mm2:$ss2\n";
+
+#Parse suitename.history file to get CPU,IO,Load average details
+open(FILE5,"$histfilename") or die "Can't open file $histfilename for reading";
+$number_of_read=0;
+$number_of_try=5;
+while (<FILE5>)
+{
+if (/DATE:/)
+{
+print;
+if ( $number_of_read == $number_of_try ) {
+$start_write=0;
+last;
+}
+
+for($i=0;$i<5;$i++)
+{
+($tmpyear2, $tmpmonth2, $tmpday2, $tmphh2, $tmpmm2, $tmpss2) = Add_Delta_DHMS( $year2, $month, $day2, $hh2, $mm2, $ss2, 0, 0, -$i, 0 );
+$tmpdate_to_text = Date_to_Text($tmpyear2,$tmpmonth2,$tmpday2);
+($t1,$tmpmonthstr,$t2)=split(/-/,$tmpdate_to_text);
+print "$tmpmonthno $tmpmonthstr $tmpday2 $tmpyear2 $tmphh2:$tmpmm2:$tmpss2\n";
+if (/DATE: $tmpmonthstr $tmpday2 $tmpyear2 $tmphh2:$tmpmm2/)
+{
+print "$tmpmonthno $tmpmonthstr $tmpday2 $tmpyear2 $tmphh2:$tmpmm2:$tmpss2\n";
+$start_write=1;
+write_to_responce($_);
+$number_of_read++;
+#last;
+}
+}
+
+
+for($i=0;$i<5;$i++)
+{
+($tmpyear2, $tmpmonth2, $tmpday2, $tmphh2, $tmpmm2, $tmpss2) = Add_Delta_DHMS( $year2, $month, $day2, $hh2, $mm2, $ss2, 0, 0, $i, 0 );
+$tmpdate_to_text = Date_to_Text($tmpyear2,$tmpmonth2,$tmpday2);
+($t1,$tmpmonthstr,$t2)=split(/-/,$tmpdate_to_text);
+print "$tmpmonthno $tmpmonthstr $tmpday2 $tmpyear2 $tmphh2:$tmpmm2:$tmpss2\n";
+if (/DATE: $tmpmonthstr $tmpday2 $tmpyear2 $tmphh2:$tmpmm2/)
+{
+print "$tmpmonthno $tmpmonthstr $tmpday2 $tmpyear2 $tmphh2:$tmpmm2:$tmpss2\n";
+$start_write=1;
+write_to_responce($_);
+$number_of_read++;
+#last;
+}
+}
+}
+}
+}
+}
+close(FILE3);
+close(FILE1);
+close(FILE2);
+#$v1=`ls -l $ENV{PWD}/result.out`;
+#print $v1;
+if ( -s "$ENV{PWD}/result.out" )
+{
+print "Found some selenium command took > $ref_time Secs, Please check $ENV{PWD}/result.out file for more details\n";
+}
+else
+{
+print "No selenium command took > $ref_time Secs\n";
+}
+
+sub write_to_responce
+{
+$_=@_;
+if ( /DATE:/ )
+{
+/(.*)/;
+$cdate=$1;
+}
+if ( /load average/)
+{
+/(.*)(load average:.*)/;
+$load_avg=$2;
+
+}
+if ( /Cpu\(s\):/)
+{
+/(.*sy,)(.*)/;
+$cpu_uage=$1;
+}
+if ($read_next_line_iowait == 1 )
+{
+#print ;
+($t1,$t2,$t3,$t4,$iowait,$t5)=split(/ +/);
+#print "$t1,$t2,$t3,$iowait,$t5\n";
+$read_next_line_iowait=0;
+}
+if ( /\%iowait/ )
+{
+#print ;
+$read_next_line_iowait=1;
+}
+
+chomp($lin_str);
+print FILE2 "$cdate\t$load_avg\t$cpu_uage\t$iowait\n";
+}

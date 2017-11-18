@@ -1,0 +1,19 @@
+task abc(dependsOn: 'defg')  << {
+    println "action: abc";
+}
+
+    tasks['abc'].doFirst {
+        println "doFirst: abc"
+    }
+    tasks['abc'].doLast {
+        println "doLast: abc"
+    }
+task defg << {
+    println "action : defg"
+}
+    tasks['defg'].doFirst {
+        println "doFirst: defg";
+    }
+    tasks['defg'].doLast {
+        println "doLast : defg";
+    }

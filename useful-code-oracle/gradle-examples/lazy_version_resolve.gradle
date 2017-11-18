@@ -1,0 +1,17 @@
+apply plugin: 'java'
+repositories { mavenCentral() }
+task propertySetter << {
+    project.ext.omctfVersion = '1.0.0'
+}
+
+task lazyConfig << {
+    project.dependencies {
+        // code to get 
+        def myREPOBID = getRepoBid(base_saas_version, 'emdi')
+        compile group: 'com.oracle.emaas.foo', name: 'not', version: project.omctfVersion
+    }
+}
+
+lazyConfig.dependsOn propertySetter
+compileJava.dependsOn lazyConfig
+

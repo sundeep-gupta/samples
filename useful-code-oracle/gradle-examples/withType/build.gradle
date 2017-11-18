@@ -1,0 +1,14 @@
+apply plugin: 'java'
+apply from : 'test.gradle'
+task mytest3 (type:Test) {
+
+}
+
+task mytest4 (type: Test) {
+
+}
+
+def testTasks = tasks.withType(Test)
+testTasks.each {
+    println it.name
+}

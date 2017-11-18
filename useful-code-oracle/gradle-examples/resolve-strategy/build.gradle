@@ -1,0 +1,45 @@
+repositories {
+    mavenLocal()
+    maven {
+        url = "${artifactory_contextUrl}" + '/emaas-test-sandbox-local'
+    }
+    maven {
+        url = "${artifactory_contextUrl}" + '/emaas-sandbox-local'
+    }
+}
+apply plugin : 'java'
+apply plugin: 'maven-publish'
+
+configurations {
+    config
+}
+if (project.hasProperty('pullVersion')) {
+    dependencies {
+        config group: 'com.oracle.emaas.emdi.sample', name: 'test-sample', version: "${pullVersion}+"
+    }
+    println configurations.config.singleFile.absolutePath
+}
+if (project.hasProperty('publishRepo')) {
+    group = 'com.oracle.emaas.emdi.sample'
+    jar {
+        baseName 'test-sample'
+    }
+    publishing {
+        repositories {
+            maven {
+                url = "${artifactory_contextUrl}/${publishRepo}"
+                credentials {
+                    username = "${artifactory_user}"
+                    password = "${artifactory_password}"
+                }
+            }
+        }
+        publications {
+            publishJava(MavenPublication) {
+                artifactId jar.baseName
+                from components.java
+                version project.version
+            }
+        }
+    }
+}

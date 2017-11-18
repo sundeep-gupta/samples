@@ -1,0 +1,68 @@
+<html>
+<head><title>Help - FarmJob status, Triage</title></head>
+<body>
+<style>
+BODY, P, LI, UL, OL {
+font-family: Arial, Helvetica, sans-serif;
+font-size:13px;
+color:#3c3c3c;
+margin:1px;
+}
+img{
+border:0px;
+text-align:center;
+}
+</style>
+<body>
+
+<h3>Farm Job Status page:</h3>
+Farm Job status page is used to monitor the status of the farm job submitted.<br> <br>
+<img src="farmstatus_bar.png"/><br><br>
+<b>Inputs:</b>&nbsp;&nbsp;All or atleast one of below Inputs are:<br><br>
+<ul>
+  <li>Username - This is the oracle user Global UID. Only one allowed</li>
+  <li>Transaction name - To display jobs submitted only for this txn. Only one transaction name</li>
+  <li>Farm Job Id - Only one farm job id</li>
+</ul><br>
+Additionaly we have "Since days" option which can be used with any of the above combinations. This implies the number of days since the farm job is submitted.<br><br>
+
+<b>Results: </b><br>
+&nbsp; - Results contains a table with the list of farmjobs and details of each like, date, transaction name, farm job status, lrgnames, ongoing & completed lrg count<br><br>
+<img src="show_farmjobstatus.png"/><br><br>
+&nbsp; - When clicking on each of the row, you will be able to see the details of the farm showjobs command<br>
+&nbsp; - You have the option to refresh to the latest content by clicking the "Showjobs" button<br>
+&nbsp; - You can also view the "farm showdiffs" results by clicking "Showdiffs" button<br>
+&nbsp; - If you would like to triage the dif details, click on the "Triage button which will give you the list of dif files and link to the dif file<br>
+&nbsp; - There is also an option to view the screenshot of the test case (if it is selenium) by clicking the screenshot icon.
+<br><br>
+<img src="triage_list.png"/>
+<br><br>
+
+<hr>
+<h3>Label Triage page: </h3>
+Helps to triage the daily label lrgs issues faster !. You can see the difs, logs and screenshots if the test is a selenium test.<br>
+To go to label triage page, click on the "Label dif triage" in the "FarmJob Status" page<br><br>
+<img src="triage_page.png"/><br><br>
+<b>Inputs:</b><br>
+<ul>
+  <li>Label name</li>
+  <li>Lrgname(s) - One or more lrgnames separated by comman. You can also use % wildcard to search for lrgs</li>
+  <li> Dif file location - You can also provide the dif file location directly and access screenshot,log,dif files</li>
+</ul><br>
+<b>Results</b>:<br>
+&nbsp; - It gives you the list of dif files and link to the dif file<br>
+&nbsp; - There is also an option to view the screenshot(if it is selenium) of the test case  by clicking the screenshot icon.<br><br> 
+<img src="show_screenshot.png"/> <br><br>
+You can also view log, err.log, html and dif contents of the test.<br><br> 
+<img src="show_diff.png"/><br><br>
+<hr>
+Link to the farm job status / label dif triage page is available as a shortcut from the <a href="/otb_ff/oracletb-fx+mz.xpi"> "Oracle ST toolbar"</a> Firefox extension.<br><br>
+<img src="otb_link.png"/><br><br>
+<hr>
+<b>Important things to note:</b><br><br>
+&nbsp; - The screenshot image cache will be cleared at the frequency of 10 mins. Incase you couldnot able to see the image click on the "Show Screenshot" button to reload the images<br>
+&nbsp; - Sometime when you click on the image you will see the error as "Sorry!!! Cannot process triage now. " In such case, check if the results location for that farmjob is available for that run.<br><br><br><br>
+&nbsp; - For queries or reporting issues, please contact <a href="mailto:senthil.murugan@oracle.com">senthil.murugan@oracle.com</a> <br>
+<div widht="100%" align="center"> Happy triaging ;)</div><br><br><br> 
+</body>
+</html>

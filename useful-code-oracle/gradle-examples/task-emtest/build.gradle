@@ -1,0 +1,26 @@
+apply plugin: 'java'
+
+ext.lrgName = 'skgupta'
+repositories {
+    flatDir {
+        dirs System.getenv('GRADLE_HOME') + '/lib/plugins'
+    }
+}
+dependencies {
+    testCompile 'org.testng:testng:6.3.1'
+    testCompile 'org.jcommander:jcommander:1.12'
+}
+
+sourceSets {
+    test {
+        java { 
+            srcDir 'src/intgTest/java' 
+        }
+    }
+}
+
+
+task myIntgTest(type: org.gradle.EMTest) {
+    dependsOn = []   
+    testngxml = 'tests/testng.xml'
+}

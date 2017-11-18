@@ -1,0 +1,9 @@
+Title,Number of Round trip requests,Total Load Time (s),Onload Time (s)
+Sign In To ORACLE CLOUD,1,0.03,0.14
+Sign In To ORACLE CLOUD,1,0.05,0.16
+Sign In To ORACLE CLOUD,6,0.51,0.55
+Sign In To ORACLE CLOUD,1,0.02,0.14
+Sign In To ORACLE CLOUD,1,0.03,0.15
+Sign In To ORACLE CLOUD,6,0.05,0.11
+Sign In To ORACLE CLOUD,1,0.02,0.24
+Sign In To ORACLE CLOUD,1,0.03,0.15

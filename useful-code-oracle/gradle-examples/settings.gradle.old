@@ -1,0 +1,4 @@
+rootProject.name = "All test Suites"
+# include ':test:suites:mylrg1.gradle'
+pd = project ':test:suites'
+pd.

@@ -1,0 +1,1 @@
+-Dselenium.run.inside.ide=yes "-Dselenium.browser=*firefox /usr/local/packages/firefox_remote/10.0/firefox-bin" -Dappserver.host=slc01ayg.us.oracle.com -Dappserver.port=15443

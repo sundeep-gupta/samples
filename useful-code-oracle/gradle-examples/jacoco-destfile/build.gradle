@@ -1,0 +1,16 @@
+apply plugin: 'java'
+apply plugin: 'jacoco'
+repositories {
+    maven {
+        url = "http://artifactory.oraclecorp.com/artifactory/repo"
+    }
+}
+dependencies {
+    testCompile group: 'org.testng', name: 'testng', version: '6.8.1'
+}
+test {
+    useTestNG()
+    jacoco {
+        destinationFile = file (System.env.T_WORK + "/test.exec")
+    }
+}

@@ -1,0 +1,8 @@
+def myfunc(int abc) {
+    println abc
+}
+
+def myfunc(String abc) {
+    println abc;
+}
+myfunc('10')

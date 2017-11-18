@@ -1,0 +1,41 @@
+// apply from: 'credentials.gradle'
+repositories { mavenCentral() }
+// from
+// http://forums.gradle.org/gradle/topics/unable_to_use_ant_junitreport_task_even_though_ant_junit_jar_is_present#reply_8805529
+configurations { antClasspath }
+dependencies {
+      antClasspath 'ant:ant-javamail:1.6.5'
+          antClasspath 'javax.activation:activation:1.1.1'
+              antClasspath 'javax.mail:mail:1.4.7'
+}
+ClassLoader antClassLoader = org.apache.tools.ant.Project.class.classLoader
+configurations.antClasspath.each { File jar ->
+    println "Adding to ant classpath : " + jar.absolutePath
+        antClassLoader.addURL( jar.toURI().toURL() )
+}
+project.ext.mailHost = 'slc03psl.us.oracle.com'
+project.ext.mailUser = 'sundeep.gupta@oracle.com'
+project.ext.mailPassword = 'SCJP^scwcd5'
+project.ext.sender = 'sundeep.gupta@oracle.com'
+project.ext.receiver = 'sundeep.gupta@oracle.com'
+task sendMail << {
+    def mailParams = [
+        mailhost: project.ext.mailHost,
+        subject: "subject",
+        messagemimetype: "text/plain",
+        //user: project.ext.mailUser,
+        //password: project.ext.mailPassword
+    ]
+    ant.mail( mailParams ) {
+        from( address:project.ext.sender )
+        to( address:project.ext.receiver )
+        message( "So far, so good" )
+    }
+}
+
+task mail (type: Exec) {
+    executable = '/usr/sbin/sendmail'
+    args = ['sundeep.gupta@oracle.com']
+ //   commandLine = "sendmail sundeep.gupta@oracle.com"
+    standardInput new File("/tmp/mail.txt").newInputStream()
+}

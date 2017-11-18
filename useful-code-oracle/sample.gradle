@@ -1,0 +1,38 @@
+<root>/subproj1/
+          src/integTest   -> subproj1-integ-test.jar
+      /subproj2/
+          src/unitTest    -> subproj2-unit-test.jar
+             /integTest   -> subproj2-integ-test.jar
+gradle clean build artifactoryPublish -> 3 jars (all are test jars)
+
+
+subproject {
+
+   if (project.hasProperty('publishJar')) {
+        publishing {
+            Add MavenPublication for integTest
+                 -> For both subproj1 and subproj2 integ-test jar will be published.
+        }
+   }
+   publishJar = true
+
+    // OPTION 1 for publishing unit-
+   if(project.hasProperty('publishUnitTestJar')) {
+     Add MavenPublication for unitTest
+
+   }
+}
+
+project(':subproj2') {
+    publishJar = true   
+    publishing {
+        publishUnitJar(MavenPublication) {... }
+    }
+
+ //   artifactoryPublish(publicactions('publishUnitJar'))
+}
+
+
+for each suproject -> scan all the MavenPublication types and add them to artifactoryPublish
+
+

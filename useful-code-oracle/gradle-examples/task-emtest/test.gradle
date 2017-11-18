@@ -1,0 +1,8 @@
+
+// This is the one which will run the lrg
+task do_lrg {
+    apply from: lrgName + '.gradle'
+    dependsOn = [lrgName]
+}
+
+
