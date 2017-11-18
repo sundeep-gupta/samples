@@ -1,0 +1,32 @@
+group 'com.oracle.skgupta.example'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.7
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'org.testng', name: 'testng', version: '6.8.8'
+//    testCompile files('D:\\bin\\selenium-2.53.0\\selenium-2.53.0.jar')
+  //  testCompile fileTree(dir: 'D:\\bin\\selenium-2.53.0\\libs', include: '*.jar')
+    compile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '2.53.+'
+
+}
+configurations.testCompile.files.each { println it}
+
+test {
+    useTestNG()
+   // options.listeners << 'com.oracle.skgupta.testng.dataprovider.XmlReporter'
+    options.suiteXmlBuilder().suite('name': "${project.name}-${name}") {
+        test('name': "${project.name}-${name}") {
+            classes([:]) {
+                'class'('name': 'com.oracle.skgupta.testng.firefox.LogChecks')
+            }
+        }
+    }
+
+}

@@ -1,0 +1,4 @@
+rootProject.name = 'testng-sample'
+include 'data-provider'
+//include 'firefox-logs'
+
