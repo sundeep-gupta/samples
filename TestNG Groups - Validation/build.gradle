@@ -1,0 +1,18 @@
+apply plugin: 'java'
+repositories {
+	flatDir {
+		dirs System.getenv('GRADLE_HOME') + '\\lib\\plugins'
+	}
+}
+dependencies {
+	testCompile 'org.testng:testng:6.3.1'
+	testCompile 'org.jcommander:jcommander:1.12'
+}
+task groupvalidator (type: Test) {
+	useTestNG() {
+		listeners = ["com.example.testng.listeners.GroupValidator"]
+		useDefaultListeners = true
+		outputDirectory = file("testng-results")
+		suites file("tests/testng.xml")
+	}
+}

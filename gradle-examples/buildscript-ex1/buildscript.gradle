@@ -1,0 +1,4 @@
+project.buildscript {
+println "I am in buildscript block"
+project.ext.hello = 'world'
+}

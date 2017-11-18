@@ -1,0 +1,65 @@
+task testA(type: Test, dependsOn: 'testB') {
+	useTestNG() {
+		useDefaultListeners = true
+		outputDirectory = file("D:\\testng-lrga")
+		suites file("tests/testng-lrga-testa.xml")
+	}
+}
+
+task testB(type: Test, dependsOn:'testD') {
+	useTestNG() {
+		useDefaultListeners = true
+		outputDirectory = file("D:\\testng-lrga")
+		suites file("tests/testng-lrga-testa.xml")
+	}
+
+}
+
+task testC(type: Test, dependsOn: 'testD') {
+	useTestNG() {
+		useDefaultListeners = true		
+		// the outputDIrectory must be $T_WORK/testng-testC.xml
+		outputDirectory = file("D:\\testng-lrga")
+		className = 'com.oracle.examples.One'
+	}
+}
+
+task testD(type: Test, dependsOn: 'testF') {
+	useTestNG() {
+		useDefaultListeners = true
+		outputDirectory = file("D:\\testng-lrga")
+		suites file("tests/testng-lrga-testa.xml")
+	}
+}
+
+task testE(type: Test) {
+	useTestNG() {
+		useDefaultListeners = true
+		outputDirectory = file("D:\\testng-lrga")
+		suites file("tests/testng-lrga-testa.xml")
+	}
+}
+
+task testF(type: Test, dependsOn: 'testE') {
+	
+	useTestNG() {
+		useDefaultListeners = true
+		outputDirectory = file("D:\\testng-lrga")
+		suites file("tests/testng-lrga-testa.xml")
+	}
+}
+
+task testG(type: Test, dependsOn: 'testD') {
+	useTestNG() {
+		useDefaultListeners = true
+		outputDirectory = file("D:\\testng-lrga")
+		suites file("tests/testng-lrga-testa.xml")
+	}
+}
+
+task lrga(type: Test, dependsOn: 'compileTestJava') {
+	dependsOn = ["testA", "testB", "testC", "testD", "testE", "testF", "testG"]
+	description = "This is the LRG to test A"
+}
+
+

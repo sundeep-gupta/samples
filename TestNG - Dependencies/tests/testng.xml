@@ -1,0 +1,18 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<!-- Runs all the tests in TestOne class which belong to 'sanity' group -->
+ <suite name="Sample 1">
+	<test name="MySuite">
+		<!-- filters testOne, but since it dependsOn non existent group it fails. -->
+		<groups>
+			<define name="group3">
+			    <include name="group2"/>
+			</define>
+			<dependencies>
+				<group name="group2" depends-on="group3"/>
+			</dependencies>
+		</groups>
+		<classes>
+			<class name="oracle.sysman.test.sample.Five"/>
+		</classes>
+	</test>
+</suite>

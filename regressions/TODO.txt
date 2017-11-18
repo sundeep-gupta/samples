@@ -1,0 +1,17 @@
+1. Have a mapping file [lrg_metadata]
+2. Have do_lrg task
+3. Run a task based on given -P argument
+4. Check if there is any programmatic way of running the task with dependent tasks also
+5. Check 'Test' task API to see how they generate results, use testng etc, ... to add useGroovy :)
+6. How to not run dependent tasks on the EMTest [i.e., Test task]
+7. Add dependent jars in classpath
+      a) Product's jar
+      b) Tools Jar
+      c) Test jars
+          -- seamlessly 
+          
+8. Upload the jar to rtf and then run the task ... no need to copyJar?
+9. Understand how various rtf .. version, pipeline can be used.
+10. How to set custom output dir when using 'gradle build'?
+11. GRADLE FYI: For every task you have gradle generate 'clean' task which cleans its output dir. e.g., cleanJar
+12. No need to create the @OutputDirectory, gradle automatically creates it.

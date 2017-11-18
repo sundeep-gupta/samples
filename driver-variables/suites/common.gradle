@@ -1,0 +1,11 @@
+
+task blockB(type: Test) {
+
+	println "blockB :" + lrgVariables['env.EM_USER']
+
+	useTestNG() {
+		useDefaultListeners = true
+		outputDirectory = file("D:\\testng-lrga")
+		suites file("tests/testng-lrga-blockB.xml")
+	}
+}

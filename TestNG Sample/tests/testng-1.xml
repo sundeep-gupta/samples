@@ -1,0 +1,31 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<!-- Runs all the tests in TestOne class which belong to 'sanity' group -->
+ <suite name="Sample 1">
+ <!-- 	<test name="MySuite">		
+
+		<groups>
+		   <group name="all">
+		      <subgroup name="sanity">
+		      <subroup name="regressions">
+		   </group>
+			<run>
+				<include name="sh"/>
+				<exclude name="failed"/>
+				<exclude name="ui"/>
+			</run>
+		</groups>
+		<classes>
+			<package name="oracle.sysman.test.*">
+		</classes>
+	</test>
+	-->
+	<test name="certifications">
+		<classes>
+		<class name="foo.bar.one">
+			<method name="m1">
+			<method name="m2">
+		</class>
+		</classes>
+	</test>
+	
+</suite>

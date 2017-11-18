@@ -1,0 +1,23 @@
+ext.area = 'area1'
+apply from: 'suites/common.gradle'
+task blockA(type: Test, dependsOn: 'blockB') {
+	println "blockA: " + lrgVariables['env.T_WORK']
+	useTestNG() {
+		useDefaultListeners = true
+		outputDirectory = file("D:\\testng-lrga")
+		suites file("tests/testng-lrga-blockA.xml")
+	}
+}
+
+task blockC(type: Test) {
+	println "blockC :" + lrgVariables['env.ORACLE_HOME']
+	useTestNG() {
+		useDefaultListeners = true
+		outputDirectory = file("D:\\testng-lrga")
+		suites file("tests/testng-lrga-blockC.xml")
+	}
+}
+
+
+
+

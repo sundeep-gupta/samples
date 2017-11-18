@@ -1,0 +1,7 @@
+<suite name="mysuite">
+    <test name="mytest">
+        <classes>
+        	<class name="com.example.testng.test.GroupValidatorTest"/>
+        </classes>
+    </test>
+</suite>

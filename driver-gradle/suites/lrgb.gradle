@@ -1,0 +1,39 @@
+
+task testH(type: Test, dependsOn: 'testD') << {
+	useTestNG() {
+		useDefaultListeners = true
+		outputDirectory = file("D:\\testng-lrga")
+		suites file("tests/testng-lrga-testa.xml")
+	}
+}
+
+task testI(type: Test, dependsOn: 'testD') << {
+	useTestNG() {
+		useDefaultListeners = true
+		outputDirectory = file("D:\\testng-lrga")
+		suites file("tests/testng-lrga-testa.xml")
+	}
+}
+
+task testJ(type: Test, dependsOn: 'testD') << {
+	useTestNG() {
+		useDefaultListeners = true
+		outputDirectory = file("D:\\testng-lrga")
+		suites file("tests/testng-lrga-testa.xml")
+	}
+}
+
+task lrgb(type: Test, dependsOn: 'compileTestJava') {
+	 dependsOn= ['testH', 'testI', 'testJ']
+	doFirst {
+		println "Something before lrgb"
+	}
+	doLast {
+		println "And something after lrgb"
+	}
+	
+	//tasks.testH.execute()
+	//tasks.testI.execute()
+	//tasks.testJ.execute()
+	description = "This is the LRG to test B"
+}

@@ -1,0 +1,14 @@
+<suite name="lrga">
+    <test name="lrga">
+        <groups>
+            <run>
+                <include name="blockA"/>
+                <include name="blockB"/>
+                <include name="blockD"/>
+            </run>
+        </groups>
+        <packages>
+            <package name="com.oracle.examples.*"/>
+        </packages>
+    </test>
+</suite>

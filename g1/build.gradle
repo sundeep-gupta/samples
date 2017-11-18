@@ -1,0 +1,8 @@
+apply plugin: 'eclipse'
+apply plugin: 'java'
+eclipse {
+	classpath {
+		defaultOutputDir = file('build-skgupta')
+		containers  'org.eclipse.jdt.USER_LIBRARY/Selenium'
+	}
+}

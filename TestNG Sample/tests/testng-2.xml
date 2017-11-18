@@ -1,0 +1,21 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<!-- Runs all the tests in TestOne class which belong to 'regression'
+ group but those which do not belong to 'ui' group -->
+ <suite name="Sample 1">
+	<test name="MySuite">
+	
+		<!-- Runs all the tests in TestOne class which belong to 'regression'
+ 			group but those which do not belong to 'ui' group -->
+		<groups>
+			<run>
+				<include name="regression"/>
+				<exclude name="ui" />
+			</run>
+		</groups>
+		<classes>
+			<class name="oracle.sysman.test.sample.TestOne"/>
+			<class name="oracle.sysman.test.sample.TestTwo"/>
+			<class name="oracle.sysman.test.sample.TestThree"/>
+		</classes>
+	</test>
+</suite>

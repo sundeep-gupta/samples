@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results skipped="0" failed="0" total="3" passed="3">
+  <reporter-output>
+  </reporter-output>
+  <suite name="lrga" duration-ms="37" started-at="2014-06-10T19:55:18Z" finished-at="2014-06-10T19:55:18Z">
+    <groups>
+      <group name="internal-2">
+        <method signature="Three.testE()[pri:0, instance:com.oracle.examples.Three@4f675ff4]" name="testE" class="com.oracle.examples.Three"/>
+      </group>
+      <group name="internal-1">
+        <method signature="Four.testF()[pri:0, instance:com.oracle.examples.Four@62dfb098]" name="testF" class="com.oracle.examples.Four"/>
+      </group>
+    </groups>
+    <test name="lrga-b2" duration-ms="37" started-at="2014-06-10T19:55:18Z" finished-at="2014-06-10T19:55:18Z">
+      <class name="com.oracle.examples.Four">
+        <test-method status="PASS" signature="testF()[pri:0, instance:com.oracle.examples.Four@62dfb098]" name="testF" duration-ms="1" depends-on-groups="internal-2" started-at="2014-06-10T19:55:18Z" finished-at="2014-06-10T19:55:18Z">
+        </test-method>
+      </class>
+      <class name="com.oracle.examples.Three">
+        <test-method status="PASS" signature="testE()[pri:0, instance:com.oracle.examples.Three@4f675ff4]" name="testE" duration-ms="20" started-at="2014-06-10T19:55:18Z" finished-at="2014-06-10T19:55:18Z">
+        </test-method>
+        <test-method status="PASS" signature="testD()[pri:0, instance:com.oracle.examples.Three@4f675ff4]" name="testD" duration-ms="0" depends-on-groups="internal-1" started-at="2014-06-10T19:55:18Z" finished-at="2014-06-10T19:55:18Z">
+        </test-method>
+      </class>
+    </test>
+  </suite>
+</testng-results>

@@ -1,0 +1,57 @@
+<project name="EM WebDriver Tests" default="runtestngwebdriver" basedir=".">
+    <!-- PROPERTIES -->
+    <property environment="env" />
+ 
+    <property name="test.srcdir" value="${basedir}/src" />
+    <property name="test.builddir" value="${basedir}/bin"/>
+    <property name="test.classdir" value="${test.builddir}/classes"/>
+    <property name="test.jarfile" value="${basedir}/qatoolsamples-intercepts.jar"/>
+    <property name="testng.jarfile" value="${basedir}/../testng.jar"/>
+	
+    <property name="testngxmllocation" value="${basedir}/tests" />
+    <!-- COMPILING OPTIONS -->
+    <property name="javac.encoding" value="ISO-8859-1"/>
+    <property name="debug"          value="on"/>
+    <property name="verbose"        value="no"/>
+	   <path id="test.classpath">
+	        <pathelement location="${test.jarfile}"/>
+	   		<pathelement location="${testng.jarfile}"/>
+	    </path>
+
+	    <!--  Compile the test source code -->
+	    <target name="compile" depends="clean">
+	        <mkdir dir="${test.builddir}"/>
+	        <mkdir dir="${test.classdir}"/>
+	        <javac srcdir="${test.srcdir}" destdir="${test.classdir}" debug="${debug}" verbose="${verbose}"
+	                encoding="${javac.encoding}" excludes="**/.ade_path/**">
+	                <classpath location="${testng.jarfile}"/>
+	        </javac>
+	        <jar jarfile="${test.jarfile}" basedir="${test.classdir}">
+	            <manifest>
+	                <attribute name="Component-Vendor" value="Oracle"/>
+	                <attribute name="Component-Name" value="EMWebDriver test suite"/>
+	            </manifest>
+	        </jar>
+	        <delete dir="${test.builddir}"/>
+	    </target>
+
+	    <!-- Delete the build directory -->
+	    <target name="clean">
+	        <delete dir="${test.builddir}"/>
+	        <delete file="${test.jarfile}"/>
+	    </target>
+	
+    <!-- Define <testng> task -->
+    <taskdef name="testng" classname="org.testng.TestNGAntTask">
+        <classpath location="${testng.jarfile}"/>
+    </taskdef>
+
+    <target name="runtestngwebdriver" depends="compile">
+        <echo message="Starting test via testng ant task in framework xml..."/>
+        <testng outputDir="${basedir}/testng-output">
+
+            <classpath   refid="test.classpath"/>
+            <xmlfileset dir="${testngxmllocation}" includes="testng.xml"/>
+        </testng>
+        	</target>
+	</project>

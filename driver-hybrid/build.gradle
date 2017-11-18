@@ -1,0 +1,21 @@
+apply plugin: 'java'
+
+repositories {
+	flatDir {
+		dirs System.getenv('GRADLE_HOME') + '\\lib\\plugins'
+	}
+}
+
+dependencies {
+	testCompile 'org.testng:testng:6.3.1'
+	testCompile 'org.jcommander:jcommander:1.12'
+}
+
+
+def taskNames = getGradle().getStartParameter().getTaskNames()
+taskNames.each {
+	if (it.startsWith('lrg')) {
+		apply from: 'suites/' + it + '.gradle'
+	}
+}
+

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results skipped="0" failed="0" total="3" passed="3">
+  <reporter-output>
+  </reporter-output>
+  <suite name="mysuite" duration-ms="35" started-at="2014-06-05T14:25:10Z" finished-at="2014-06-05T14:25:10Z">
+    <groups>
+      <group name="ui">
+        <method signature="GroupValidatorTest.invalidGroupNameTest()[pri:0, instance:com.example.testng.test.GroupValidatorTest@483ead69]" name="invalidGroupNameTest" class="com.example.testng.test.GroupValidatorTest"/>
+        <method signature="GroupValidatorTest.validGroupNameTest()[pri:0, instance:com.example.testng.test.GroupValidatorTest@483ead69]" name="validGroupNameTest" class="com.example.testng.test.GroupValidatorTest"/>
+      </group>
+    </groups>
+    <test name="mytest" duration-ms="35" started-at="2014-06-05T14:25:10Z" finished-at="2014-06-05T14:25:10Z">
+      <class name="com.example.testng.test.GroupValidatorTest">
+        <test-method status="PASS" signature="invalidGroupNameTest()[pri:0, instance:com.example.testng.test.GroupValidatorTest@483ead69]" name="invalidGroupNameTest" duration-ms="8" started-at="2014-06-05T14:25:10Z" finished-at="2014-06-05T14:25:10Z">
+        </test-method>
+        <test-method status="PASS" signature="noGroupTest()[pri:0, instance:com.example.testng.test.GroupValidatorTest@483ead69]" name="noGroupTest" duration-ms="1" started-at="2014-06-05T14:25:10Z" finished-at="2014-06-05T14:25:10Z">
+        </test-method>
+        <test-method status="PASS" signature="validGroupNameTest()[pri:0, instance:com.example.testng.test.GroupValidatorTest@483ead69]" name="validGroupNameTest" duration-ms="1" started-at="2014-06-05T14:25:10Z" finished-at="2014-06-05T14:25:10Z">
+        </test-method>
+      </class>
+    </test>
+  </suite>
+</testng-results>

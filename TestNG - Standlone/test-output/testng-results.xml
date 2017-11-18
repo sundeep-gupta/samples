@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results skipped="0" failed="0" total="2" passed="2">
+  <reporter-output>
+  </reporter-output>
+  <suite name="Sample 1" duration-ms="20" started-at="2014-04-29T10:14:58Z" finished-at="2014-04-29T10:14:58Z">
+    <groups>
+      <group name="standalone">
+        <method signature="StandaloneTwo.testOne()[pri:0, instance:oracle.sysman.sample.test.testng.StandaloneTwo@7a6b2f03]" name="testOne" class="oracle.sysman.sample.test.testng.StandaloneTwo"/>
+      </group> <!-- standalone -->
+    </groups>
+    <test name="MySuite" duration-ms="20" started-at="2014-04-29T10:14:58Z" finished-at="2014-04-29T10:14:58Z">
+      <class name="oracle.sysman.sample.test.testng.StandaloneTwo">
+        <test-method status="PASS" signature="testOne()[pri:0, instance:oracle.sysman.sample.test.testng.StandaloneTwo@7a6b2f03]" name="testOne" duration-ms="7" started-at="2014-04-29T10:14:58Z" finished-at="2014-04-29T10:14:58Z">
+        </test-method> <!-- testOne -->
+        <test-method status="PASS" signature="testTwo()[pri:0, instance:oracle.sysman.sample.test.testng.StandaloneTwo@7a6b2f03]" name="testTwo" duration-ms="0" depends-on-groups="standalone" started-at="2014-04-29T10:14:58Z" finished-at="2014-04-29T10:14:58Z">
+        </test-method> <!-- testTwo -->
+      </class> <!-- oracle.sysman.sample.test.testng.StandaloneTwo -->
+    </test> <!-- MySuite -->
+  </suite> <!-- Sample 1 -->
+</testng-results>

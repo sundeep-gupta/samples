@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results skipped="0" failed="0" total="3" passed="3">
+  <reporter-output>
+  </reporter-output>
+  <suite name="Default suite" duration-ms="28" started-at="2014-04-29T03:24:40Z" finished-at="2014-04-29T03:24:40Z">
+    <groups>
+      <group name="ui">
+        <method signature="One.testOne()[pri:0, instance:oracle.sysman.test.sample.One@5bfd4a63]" name="testOne" class="oracle.sysman.test.sample.One"/>
+      </group> <!-- ui -->
+      <group name="backend">
+        <method signature="One.testTwo()[pri:0, instance:oracle.sysman.test.sample.One@5bfd4a63]" name="testTwo" class="oracle.sysman.test.sample.One"/>
+      </group> <!-- backend -->
+      <group name="regression">
+        <method signature="One.testThree()[pri:0, instance:oracle.sysman.test.sample.One@5bfd4a63]" name="testThree" class="oracle.sysman.test.sample.One"/>
+      </group> <!-- regression -->
+      <group name="sanity">
+        <method signature="One.testOne()[pri:0, instance:oracle.sysman.test.sample.One@5bfd4a63]" name="testOne" class="oracle.sysman.test.sample.One"/>
+        <method signature="One.testTwo()[pri:0, instance:oracle.sysman.test.sample.One@5bfd4a63]" name="testTwo" class="oracle.sysman.test.sample.One"/>
+      </group> <!-- sanity -->
+    </groups>
+    <test name="Default test" duration-ms="28" started-at="2014-04-29T03:24:40Z" finished-at="2014-04-29T03:24:40Z">
+      <class name="oracle.sysman.test.sample.One">
+        <test-method status="PASS" signature="testOne()[pri:0, instance:oracle.sysman.test.sample.One@5bfd4a63]" name="testOne" duration-ms="11" started-at="2014-04-29T08:54:40Z" finished-at="2014-04-29T08:54:40Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testOne -->
+        <test-method status="PASS" signature="testThree()[pri:0, instance:oracle.sysman.test.sample.One@5bfd4a63]" name="testThree" duration-ms="1" started-at="2014-04-29T08:54:40Z" finished-at="2014-04-29T08:54:40Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testThree -->
+        <test-method status="PASS" signature="testTwo()[pri:0, instance:oracle.sysman.test.sample.One@5bfd4a63]" name="testTwo" duration-ms="0" started-at="2014-04-29T08:54:40Z" finished-at="2014-04-29T08:54:40Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testTwo -->
+      </class> <!-- oracle.sysman.test.sample.One -->
+    </test> <!-- Default test -->
+  </suite> <!-- Default suite -->
+</testng-results>

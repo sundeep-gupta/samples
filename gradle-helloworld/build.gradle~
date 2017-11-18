@@ -1,0 +1,28 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'application'
+version = '1.0-SNAPSHOT'
+description = 'This is the gradle build file for project - helloworld'
+ant.project.properties['env.foo'] = 'bar' 
+uploadArchives {
+    repositories {
+        flatDir {
+            dirs 'repos'
+        }
+    }
+}
+jar {
+manifest { attributes 'Main-Class': 'com.skgupta.examples.gradle.HelloWorld' }
+}
+mainClassName = 'com.skgupta.examples.gradle.HelloWorld'
+
+run.doFirst {
+    System.setProperty("foo", "bar")
+    println System.getProperty("foo");
+		systemProperties = System.properties
+    println ENV_VAR_T_WORK
+    ant.project.properties['env.foo'] = 'bar'
+    println  ant.project.properties['env.foo']
+}
+ 
+

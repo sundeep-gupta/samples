@@ -1,0 +1,11 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<!-- Runs all the tests in TestOne class which belong to 'sanity' group -->
+ <suite name="Sample 1">
+	<test name="MySuite">
+		<classes>
+			<class name="oracle.sysman.sample.test.testng.StandaloneTwo">
+				<method name="testTwo"/>
+			</class>
+		</classes>
+	</test>
+</suite>

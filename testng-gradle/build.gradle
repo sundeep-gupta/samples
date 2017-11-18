@@ -1,0 +1,18 @@
+apply plugin: 'java'
+repositories {
+	flatDir {
+		dirs 'D:\\bin\\gradle\\lib\\plugins'
+	}
+}
+dependencies {
+	testCompile 'org.testng:testng:6.3.1'
+	testCompile 'org.jcommander:jcommander:1.12'
+}
+
+test {
+	useTestNG {
+		useDefaultListeners = true
+		outputDirectory = file("D:\\skgupta-reports")
+	}
+	reports.html.enabled = false
+}

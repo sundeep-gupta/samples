@@ -1,0 +1,7 @@
+<suite name="lrga">
+    <test name="lrgb-b1">
+        <classes>
+            <class name="com.oracle.examples.Six"/>
+        </classes>
+    </test>
+</suite>

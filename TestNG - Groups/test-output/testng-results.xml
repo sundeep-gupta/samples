@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results skipped="0" failed="0" total="1" passed="1">
+  <reporter-output>
+  </reporter-output>
+  <suite name="My Random Suite" duration-ms="72" started-at="2014-05-11T09:22:18Z" finished-at="2014-05-11T09:22:18Z">
+    <groups>
+      <group name="noui">
+        <method signature="Two.testNonUI()[pri:0, instance:oracle.sysman.sample.testng.Two@107c1f2f]" name="testNonUI" class="oracle.sysman.sample.testng.Two"/>
+      </group> <!-- noui -->
+      <group name="sanity">
+        <method signature="Two.testNonUI()[pri:0, instance:oracle.sysman.sample.testng.Two@107c1f2f]" name="testNonUI" class="oracle.sysman.sample.testng.Two"/>
+      </group> <!-- sanity -->
+    </groups>
+    <test name="MyName" duration-ms="72" started-at="2014-05-11T09:22:18Z" finished-at="2014-05-11T09:22:18Z">
+      <class name="oracle.sysman.sample.testng.Two">
+        <test-method status="PASS" signature="testNonUI()[pri:0, instance:oracle.sysman.sample.testng.Two@107c1f2f]" name="testNonUI" duration-ms="54" started-at="2014-05-11T14:52:18Z" finished-at="2014-05-11T14:52:18Z">
+          <reporter-output>
+          </reporter-output>
+        </test-method> <!-- testNonUI -->
+      </class> <!-- oracle.sysman.sample.testng.Two -->
+    </test> <!-- MyName -->
+  </suite> <!-- My Random Suite -->
+</testng-results>

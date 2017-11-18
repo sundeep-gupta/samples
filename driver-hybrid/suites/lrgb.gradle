@@ -1,0 +1,16 @@
+project.ext.lrgName = 'lrgb'
+import oracle.sysman.qatools.lrgmanager.*
+
+task blockB(type: TestNGBlock) {
+	testngxml = "tests/testng-lrga-blockB.xml"
+}
+
+// NOTE: Cannot define blockB again because it is already defined in lrga.gradle
+task blockD(type: TestNGBlock, dependsOn: 'blockB') {
+	testngxml = "tests/testng-lrgb-blockA.xml"
+}
+
+task lrgb(type: TestLRG, dependsOn: 'compileTestJava') {
+	dependsOn= ['blockD']
+	description = "This is the LRG to test B"
+}

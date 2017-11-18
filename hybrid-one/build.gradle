@@ -1,0 +1,21 @@
+subprojects {
+
+	apply plugin: 'java'
+
+	repositories {
+		flatDir {
+        		dirs '/usr/local/gradle-1.11/lib/plugins'
+    		}
+	}
+
+	dependencies {
+		testCompile 'org.testng:testng:6.3.1'
+		testCompile 'org.jcommander:jcommander:1.12'
+	}
+	
+	tasks.withType(Test) {
+		systemProperties = System.properties
+	}
+
+}
+

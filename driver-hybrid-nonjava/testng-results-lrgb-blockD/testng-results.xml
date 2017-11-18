@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results skipped="0" failed="0" total="3" passed="3">
+  <reporter-output>
+  </reporter-output>
+  <suite name="lrga" duration-ms="26" started-at="2014-06-10T19:55:20Z" finished-at="2014-06-10T19:55:20Z">
+    <groups>
+    </groups>
+    <test name="lrgb-b1" duration-ms="26" started-at="2014-06-10T19:55:20Z" finished-at="2014-06-10T19:55:20Z">
+      <class name="com.oracle.examples.Six">
+        <test-method status="PASS" signature="testH()[pri:0, instance:com.oracle.examples.Six@4306404c]" name="testH" duration-ms="8" started-at="2014-06-10T19:55:20Z" finished-at="2014-06-10T19:55:20Z">
+        </test-method>
+        <test-method status="PASS" signature="testI()[pri:0, instance:com.oracle.examples.Six@4306404c]" name="testI" duration-ms="3" started-at="2014-06-10T19:55:20Z" finished-at="2014-06-10T19:55:20Z">
+        </test-method>
+        <test-method status="PASS" signature="testJ()[pri:0, instance:com.oracle.examples.Six@4306404c]" name="testJ" duration-ms="1" started-at="2014-06-10T19:55:20Z" finished-at="2014-06-10T19:55:20Z">
+        </test-method>
+      </class>
+    </test>
+  </suite>
+</testng-results>

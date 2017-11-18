@@ -1,0 +1,15 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'com.itextpdf', name: 'itextpdf', version: '5.+'
+    compile group: 'org.bouncycastle', name: 'bcprov-jdk15on', version: '1.+'
+    compile group: 'org.bouncycastle', name: 'bcmail-jdk15on', version: '1.+'
+
+}
+
+mainClassName = "com.bubble.examples.itext.DecryptPdfFile"

@@ -1,0 +1,13 @@
+// NOTE: Cannot define blockB again because it is already defined in lrga.gradle
+task blockD(type: Test, dependsOn: 'blockB') {
+	useTestNG() {
+		useDefaultListeners = true
+		outputDirectory = file("D:\\testng-lrga")
+		suites file("tests/testng-lrgb-blockA.xml")
+	}
+}
+
+task lrgb(type: Test, dependsOn: 'compileTestJava') {
+	dependsOn= ['blockD']
+	description = "This is the LRG to test B"
+}

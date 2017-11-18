@@ -1,0 +1,42 @@
+apply plugin: 'java'
+
+ext.lrgVariables = new HashMap<String, String>()
+apply from: 'suites/lrga.gradle'
+apply from: 'suites/lrgb.gradle'
+repositories {
+	flatDir {
+		dirs System.getenv('GRADLE_HOME') + '\\lib\\plugins'
+	}
+}
+dependencies {
+	testCompile 'org.testng:testng:6.3.1'
+	testCompile 'org.jcommander:jcommander:1.12'
+}
+
+
+def taskNames = getGradle().getStartParameter().getTaskNames()
+taskNames.each {
+	if (it.startsWith('lrg')) {
+		def globalProps = new Properties()
+		globalProps.load(new FileInputStream('global-test.properties'))
+		lrgVariables.putAll(globalProps)		
+	}
+	lrgVariables.each {
+		println it.key + " : " + it.value
+	}
+}
+
+task lrga(type: Test, dependsOn: 'compileTestJava') << {
+	apply from: 'suites/' + it + '.gradle'
+	dependsOn = ["blockA", "blockB", "blockC"]
+	description = "This is the LRG to test A"
+	project.ext.area = 'area1'
+	
+	def areaProps = new Properties()
+	areaProps.load(new FileInputStream('suites/' + ext.get('area') + '.properties'))
+	lrgVariables.putAll(areaProps)
+	
+	def lrgProps = new Properties()
+	lrgProps.load(new FileInputStream('suites/' + it + '.properties'))
+	lrgVariables.putAll(lrgProps)
+}

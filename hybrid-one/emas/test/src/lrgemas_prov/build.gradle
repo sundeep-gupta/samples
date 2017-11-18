@@ -1,0 +1,41 @@
+// tests for lrgemas_prov
+
+
+// Testng testclass
+        
+	task One ( type: TestNGClass ) {  }
+
+// TestNG group
+        
+	task ui( type: Group  ) {  }
+
+// Upload Profile to SWlib
+
+	task upload_profile (type : CliTest) {
+		dependsOn=[':emcore:test:src:lrgemcore_frmwrk:setup_soft_lib']
+		onlyIf { dependsOnTaskDidWork() }
+	}
+
+// Prov a home
+
+	task prov_mwhome (type : SeleniumTest) {
+		dependsOn=['upload_profile']
+	}
+
+// Group of tests to be run as part of this LRG 
+
+task lrgemas_prov {
+	dependsOn=['upload_profile', 'prov_mwhome', 'One']
+	}
+
+
+
+// System Property specific to LRG
+
+tasks.withType(Test) {
+	// below property overrides the value set as global
+		systemProperty  'lrgEmUser', 'TestSuperAdmin'
+
+	// needed for this LRG
+		systemProperty	'extRole', 'Monitor'
+}

@@ -1,2 +1,10 @@
-build/
+
+
 .gradle
+.project
+.classpath
+gradle-app.setting
+.m2
+.settings/
+bin/
+build/

@@ -1,0 +1,3 @@
+rootProject.name = 'demoproject'
+
+include ':emas:test:src:lrgemas_prov',':emcore:test:src:lrgemcore_frmwrk'

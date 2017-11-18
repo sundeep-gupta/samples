@@ -1,0 +1,28 @@
+apply plugin: 'java'
+repositories {
+	flatDir {
+		dirs System.getenv('GRADLE_HOME') + '\\lib\\plugins'
+	}
+}
+dependencies {
+	testCompile 'org.testng:testng:6.3.1'
+	testCompile 'org.jcommander:jcommander:1.12'
+}
+
+task lrga(type: Test, dependsOn: 'compileTestJava') {
+	description = "This is the LRG to test A"
+	useTestNG() {
+		useDefaultListeners = true
+		outputDirectory = file("D:\\testng-lrga")
+		suites file("tests/testng-lrga.xml")
+	}
+}
+
+task lrgb(type: Test, dependsOn: 'compileTestJava') {
+	description = "This is the LRG to test B"
+	useTestNG() {
+		useDefaultListeners = true
+		outputDirectory = file("D:\\testng-results")
+		suites file("tests/testng-lrgb.xml")
+	}
+}

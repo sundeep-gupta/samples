@@ -1,0 +1,18 @@
+<suite name="abc" owner="skgupta" area="qatoolsamples">
+<test name="cde">
+    <groups>
+        <define name="two">
+            <include name="one"/>
+        </define>
+        <run>
+        <include name="two"/>
+        </run>
+        </groups>
+<classes>
+<class name="oracle.sysman.test.samples.MyTests"/>
+</classes>
+</test>
+<properties>
+<property name="abc" value="def"/>
+</properties>
+</suite>

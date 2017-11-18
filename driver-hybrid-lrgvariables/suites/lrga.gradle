@@ -1,0 +1,21 @@
+// ext.area = 'area1'
+project.ext.lrgName = 'lrgb'
+task blockB(type: oracle.sysman.qatools.lrgmanager.TestNGBlock) {
+	testngxml = "tests/testng-lrga-blockB.xml"
+}
+
+
+task blockA(type: oracle.sysman.qatools.lrgmanager.TestNGBlock, dependsOn: 'blockB') {
+	testngxml = "tests/testng-lrga-blockA.xml"
+}
+
+task blockC(type:  oracle.sysman.qatools.lrgmanager.TestNGBlock) {
+	testngxml = "tests/testng-lrga-blockC.xml"
+}
+
+
+task lrga(type: oracle.sysman.qatools.lrgmanager.TestLRG, dependsOn: 'compileTestJava') {
+	dependsOn = ["blockA", "blockB", "blockC"]
+	description = "This is the LRG to test A"
+}
+

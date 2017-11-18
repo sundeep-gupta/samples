@@ -1,0 +1,17 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="My Random Suite" owner="skgupta" area="tools">
+    <test name="MyName">
+        <groups>
+            <define name="sanity-noui">
+                <include name="sanity"/>
+            </define>
+            <run>
+            	<include name="noui"/>
+            </run>
+        </groups>
+        <classes>
+            <class name="oracle.sysman.sample.testng.One"/>
+            <class name="oracle.sysman.sample.testng.Two"/>
+        </classes>   
+    </test>
+</suite>

@@ -1,0 +1,24 @@
+// tests for lrgemcore_frmwrk
+
+// Setup software library
+	task setup_soft_lib (type : CliTest)  {  }
+
+// Create component in software library
+	task create_component (type : CliTest) {
+		dependsOn=['setup_soft_lib']
+	}
+
+// Verify Created Component 
+	task verify_component (type : CliTest) {
+		dependsOn=['create_component']
+	}
+
+// Verify error messages in negative scenario
+	task verifyException (type : TestNGClass)  { }
+
+// Tests to be run as part of this LRG
+
+task lrgemcore_frmwrk {
+	dependsOn=['setup_soft_lib', 'create_component','verify_component','verifyException']
+	}
+

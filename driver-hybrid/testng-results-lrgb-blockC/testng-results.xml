@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results skipped="0" failed="0" total="1" passed="1">
+  <reporter-output>
+  </reporter-output>
+  <suite name="lrga" duration-ms="31" started-at="2014-07-01T13:54:17Z" finished-at="2014-07-01T13:54:17Z">
+    <groups>
+    </groups>
+    <test name="lrga-b1" duration-ms="31" started-at="2014-07-01T13:54:17Z" finished-at="2014-07-01T13:54:17Z">
+      <class name="com.oracle.examples.Five">
+        <test-method status="PASS" signature="testG()[pri:0, instance:com.oracle.examples.Five@6bab735a]" name="testG" duration-ms="18" started-at="2014-07-01T13:54:17Z" finished-at="2014-07-01T13:54:17Z">
+        </test-method>
+      </class>
+    </test>
+  </suite>
+</testng-results>
