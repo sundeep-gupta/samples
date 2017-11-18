@@ -1,0 +1,15 @@
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+    sourceSets {
+        integTest {
+            java {
+                srcDir 'src/integTest/java'
+            }
+        }
+    }
+    task integTestJar(type: Jar) {
+        from sourceSets.integTest.java
+        appendix 'integ-test'
+    }
+}
